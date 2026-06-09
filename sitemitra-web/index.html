@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SiteMitra – CCTV Field Work Platform | by Jenix</title>
+  <meta name="description" content="SiteMitra connects CCTV field technicians with System Integrators across India. Find work. Assign work. Track everything. Free to use." />
+  <meta property="og:title" content="SiteMitra – Field Work Made Simple" />
+  <meta property="og:description" content="India's free platform for CCTV & security field professionals." />
+  <meta property="og:type" content="website" />
+  <meta name="theme-color" content="#e8630a" />
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="SiteMitra" />
+  <link rel="apple-touch-icon" href="/icon-192.png" />
+  <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --orange:   #e8630a;
+      --orange-d: #c4520a;
+      --orange-l: #ff8534;
+      --dark:     #0f1117;
+      --dark2:    #1a1d27;
+      --card-bg:  #1e2130;
+      --white:    #ffffff;
+      --off:      #f5f0e8;
+      --text:     #e0ddd7;
+      --muted:    #8a8fa8;
+      --border:   rgba(255,255,255,0.08);
+      --radius:   14px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--dark);
+      color: var(--white);
+      line-height: 1.65;
+      overflow-x: hidden;
+    }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--dark); }
+    ::-webkit-scrollbar-thumb { background: var(--orange); border-radius: 3px; }
+
+    /* ── NAVBAR ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(15,17,23,0.92);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 5%;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 64px;
+    }
+    .nav-logo {
+      font-size: 1.35rem; font-weight: 800; letter-spacing: 1px;
+      color: var(--white); text-decoration: none;
+    }
+    .nav-logo span { color: var(--orange); }
+    .nav-links { display: flex; gap: 28px; list-style: none; }
+    .nav-links a {
+      color: var(--muted); text-decoration: none;
+      font-size: 0.875rem; font-weight: 500;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--orange); }
+    .nav-badge {
+      background: var(--orange); color: #fff;
+      padding: 6px 16px; border-radius: 20px;
+      font-size: 0.8rem; font-weight: 600;
+      text-decoration: none; white-space: nowrap;
+      transition: background 0.2s;
+    }
+    .nav-badge:hover { background: var(--orange-l); }
+    .hamburger {
+      display: none; flex-direction: column; gap: 5px;
+      cursor: pointer; padding: 4px;
+    }
+    .hamburger span {
+      display: block; width: 24px; height: 2px;
+      background: var(--white); border-radius: 2px;
+      transition: 0.3s;
+    }
+    .lang-toggle {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid var(--border);
+      color: var(--text); padding: 5px 13px;
+      border-radius: 20px; font-size: 0.78rem;
+      font-weight: 600; cursor: pointer;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+      font-family: inherit; letter-spacing: 0.3px;
+    }
+    .lang-toggle:hover { background: var(--orange); color: #fff; border-color: var(--orange); }
+    .lang-toggle-mobile {
+      display: block; width: 100%; text-align: left;
+      padding: 12px 0; font-size: 0.95rem;
+      background: none; border: none; border-bottom: 1px solid var(--border);
+      color: var(--text); font-family: inherit; cursor: pointer;
+      font-weight: 600;
+    }
+    .mobile-menu {
+      display: none;
+      position: fixed; top: 64px; left: 0; right: 0;
+      background: var(--dark2);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 5%; z-index: 99;
+    }
+    .mobile-menu.open { display: block; }
+    .mobile-menu a {
+      display: block; padding: 12px 0;
+      color: var(--text); text-decoration: none; font-weight: 500;
+      border-bottom: 1px solid var(--border);
+    }
+    .mobile-menu a:last-child { border-bottom: none; }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex; align-items: center;
+      padding: 80px 5% 60px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 60% 60% at 70% 50%, rgba(232,99,10,0.12) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 80% at 10% 80%, rgba(232,99,10,0.07) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .hero-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 60px; align-items: center;
+      max-width: 1200px; margin: 0 auto; width: 100%;
+      position: relative; z-index: 1;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(232,99,10,0.12);
+      border: 1px solid rgba(232,99,10,0.3);
+      color: var(--orange-l); padding: 6px 14px;
+      border-radius: 20px; font-size: 0.78rem; font-weight: 600;
+      margin-bottom: 20px; letter-spacing: 0.5px;
+    }
+    .hero-badge::before { content: '●'; font-size: 0.5rem; animation: blink 1.5s infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    .hero h1 {
+      font-size: clamp(2.8rem, 6vw, 5rem);
+      font-weight: 900;
+      letter-spacing: -1px;
+      line-height: 1.05;
+      margin-bottom: 12px;
+    }
+    .hero h1 .brand {
+      background: linear-gradient(135deg, var(--orange-l), var(--orange));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-hindi {
+      font-size: 1.25rem; font-weight: 500;
+      color: var(--muted); margin-bottom: 16px;
+    }
+    .hero p {
+      font-size: 1.05rem; color: var(--text);
+      max-width: 480px; margin-bottom: 36px;
+      font-weight: 400;
+    }
+    .hero-ctas { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+    .btn-primary {
+      background: var(--orange); color: #fff;
+      padding: 14px 28px; border-radius: 10px;
+      font-size: 0.95rem; font-weight: 600;
+      text-decoration: none; display: inline-flex;
+      align-items: center; gap: 8px;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .btn-primary:hover { background: var(--orange-l); transform: translateY(-1px); }
+    .btn-outline {
+      border: 1px solid var(--border); color: var(--text);
+      padding: 14px 24px; border-radius: 10px;
+      font-size: 0.9rem; font-weight: 500;
+      text-decoration: none; display: inline-flex;
+      align-items: center; gap: 8px;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .btn-outline:hover { border-color: var(--orange); color: var(--orange); }
+
+    /* ── INSTALL BUTTON ── */
+    .btn-install {
+      background: transparent;
+      border: 2px solid var(--orange);
+      color: var(--orange-l);
+      padding: 13px 22px; border-radius: 10px;
+      font-size: 0.9rem; font-weight: 700;
+      cursor: pointer; font-family: inherit;
+      display: inline-flex; align-items: center; gap: 8px;
+      animation: installPulse 1.8s ease-in-out infinite;
+      transition: background 0.2s, color 0.2s;
+      white-space: nowrap;
+    }
+    .btn-install:hover {
+      background: var(--orange); color: #fff;
+      animation: none;
+    }
+    @keyframes installPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(232,99,10,0.5); border-color: var(--orange); }
+      50% { box-shadow: 0 0 0 10px rgba(232,99,10,0); border-color: var(--orange-l); }
+    }
+
+    .hero-pills {
+      display: flex; gap: 10px; flex-wrap: wrap;
+      margin-top: 32px;
+    }
+    .pill {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      padding: 6px 14px; border-radius: 20px;
+      font-size: 0.78rem; color: var(--muted);
+    }
+    .hero-visual {
+      display: flex; justify-content: center; align-items: center;
+    }
+    .app-mockup {
+      width: 280px; height: 520px;
+      background: var(--card-bg);
+      border-radius: 36px;
+      border: 2px solid var(--border);
+      position: relative;
+      display: flex; flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05);
+    }
+    .mockup-bar {
+      height: 44px; background: rgba(232,99,10,0.15);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; padding: 0 16px;
+      gap: 8px;
+    }
+    .mockup-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .mockup-notch {
+      width: 80px; height: 8px; background: rgba(255,255,255,0.08);
+      border-radius: 4px; margin: 0 auto;
+    }
+    .mockup-body { flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+    .mockup-card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 10px; padding: 12px;
+    }
+    .mockup-label { font-size: 0.65rem; color: var(--muted); margin-bottom: 4px; }
+    .mockup-value { font-size: 0.8rem; font-weight: 600; }
+    .mockup-avail {
+      display: inline-block; padding: 3px 10px;
+      background: rgba(34,197,94,0.15);
+      color: #4ade80; border-radius: 20px;
+      font-size: 0.65rem; font-weight: 600;
+    }
+    .mockup-row { display: flex; gap: 8px; }
+    .mockup-row .mockup-card { flex: 1; }
+    .mockup-stat { font-size: 1.1rem; font-weight: 700; color: var(--orange-l); }
+
+    /* ── STATS STRIP ── */
+    .stats-strip {
+      background: rgba(232,99,10,0.08);
+      border-top: 1px solid rgba(232,99,10,0.2);
+      border-bottom: 1px solid rgba(232,99,10,0.2);
+      padding: 28px 5%;
+    }
+    .stats-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; justify-content: space-around; flex-wrap: wrap; gap: 24px;
+    }
+    .stat-item { text-align: center; }
+    .stat-num {
+      font-size: 2rem; font-weight: 800;
+      color: var(--orange-l); display: block;
+    }
+    .stat-label { font-size: 0.8rem; color: var(--muted); font-weight: 500; }
+
+    /* ── SECTION BASE ── */
+    section { padding: 90px 5%; }
+    .section-inner { max-width: 1200px; margin: 0 auto; }
+    .section-tag {
+      display: inline-block;
+      background: rgba(232,99,10,0.1);
+      color: var(--orange);
+      padding: 4px 14px; border-radius: 20px;
+      font-size: 0.78rem; font-weight: 600;
+      letter-spacing: 0.5px; margin-bottom: 14px;
+    }
+    .section-title {
+      font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+      font-weight: 800; line-height: 1.15;
+      margin-bottom: 14px;
+    }
+    .section-title span { color: var(--orange); }
+    .section-sub {
+      font-size: 1rem; color: var(--muted);
+      max-width: 560px; font-weight: 400;
+    }
+    .section-header { margin-bottom: 56px; }
+    .section-header.center { text-align: center; }
+    .section-header.center .section-sub { margin: 0 auto; }
+
+    /* ── PROBLEM ── */
+    .problem { background: var(--dark2); }
+    .problem-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 28px;
+    }
+    .problem-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 32px;
+    }
+    .problem-card h3 {
+      font-size: 1.1rem; font-weight: 700;
+      margin-bottom: 18px; display: flex;
+      align-items: center; gap: 10px;
+    }
+    .problem-card h3 .ico { font-size: 1.4rem; }
+    .problem-list { list-style: none; }
+    .problem-list li {
+      padding: 10px 0; color: var(--text);
+      font-size: 0.9rem; border-bottom: 1px solid var(--border);
+      display: flex; align-items: flex-start; gap: 10px;
+    }
+    .problem-list li:last-child { border-bottom: none; }
+    .problem-list li::before {
+      content: '✗'; color: #f87171;
+      font-weight: 700; flex-shrink: 0; margin-top: 1px;
+    }
+
+    /* ── SOLUTION / FEATURES ── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 22px;
+    }
+    .feat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 28px 24px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .feat-card:hover {
+      border-color: rgba(232,99,10,0.4);
+      transform: translateY(-3px);
+    }
+    .feat-icon {
+      width: 48px; height: 48px;
+      background: rgba(232,99,10,0.12);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; margin-bottom: 16px;
+    }
+    .feat-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+    .feat-card p { font-size: 0.875rem; color: var(--muted); line-height: 1.6; }
+
+    /* ── ROLES (Tech + SI) ── */
+    .roles-wrap {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 28px;
+    }
+    .role-card {
+      border-radius: var(--radius); overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .role-head {
+      padding: 28px 28px 20px;
+      background: linear-gradient(135deg, rgba(232,99,10,0.15), rgba(232,99,10,0.03));
+      border-bottom: 1px solid var(--border);
+    }
+    .role-head .role-emoji { font-size: 2.4rem; display: block; margin-bottom: 10px; }
+    .role-head h3 { font-size: 1.3rem; font-weight: 800; }
+    .role-head p { font-size: 0.875rem; color: var(--muted); margin-top: 4px; }
+    .role-body { padding: 24px 28px; background: var(--card-bg); }
+    .role-steps { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+    .role-steps li {
+      display: flex; gap: 14px; align-items: flex-start;
+      font-size: 0.9rem; color: var(--text);
+    }
+    .step-num {
+      width: 26px; height: 26px; flex-shrink: 0;
+      background: var(--orange); color: #fff;
+      border-radius: 50%; display: flex; align-items: center;
+      justify-content: center; font-size: 0.7rem;
+      font-weight: 700; margin-top: 1px;
+    }
+
+    /* ── TRUST ── */
+    .trust { background: var(--dark2); }
+    .trust-grid {
+      display: grid; grid-template-columns: repeat(4,1fr); gap: 20px;
+    }
+    .trust-item {
+      text-align: center; padding: 28px 16px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .trust-item .t-icon { font-size: 2rem; margin-bottom: 12px; display: block; }
+    .trust-item h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 6px; }
+    .trust-item p { font-size: 0.8rem; color: var(--muted); }
+
+    /* ── ABOUT ── */
+    .about-grid {
+      display: grid; grid-template-columns: 1fr 1.4fr; gap: 60px; align-items: center;
+    }
+    .about-left { }
+    .about-logo-block {
+      margin-bottom: 24px;
+    }
+    .brand-big {
+      font-size: 3rem; font-weight: 900;
+      letter-spacing: 2px; line-height: 1;
+    }
+    .brand-big span { color: var(--orange); }
+    .by-line { font-size: 0.9rem; color: var(--muted); margin-top: 6px; }
+    .about-left p { color: var(--text); font-size: 0.95rem; margin-bottom: 16px; }
+    .about-right { }
+    .about-points { list-style: none; display: flex; flex-direction: column; gap: 16px; }
+    .about-points li {
+      display: flex; gap: 14px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px; padding: 16px 18px;
+      font-size: 0.9rem; align-items: flex-start;
+    }
+    .about-points li .pt-ico { font-size: 1.2rem; flex-shrink: 0; }
+    .about-points li strong { display: block; font-weight: 600; margin-bottom: 2px; }
+    .about-points li span { color: var(--muted); font-size: 0.83rem; }
+
+    /* ── LEGAL SECTIONS ── */
+    .legal { background: var(--dark2); }
+    .legal-wrap {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 48px 52px;
+      font-size: 0.9rem;
+      line-height: 1.8;
+      color: var(--text);
+    }
+    .legal-wrap h2 {
+      font-size: 1.6rem; font-weight: 800;
+      color: var(--white); margin-bottom: 6px;
+    }
+    .legal-meta {
+      font-size: 0.8rem; color: var(--muted);
+      margin-bottom: 32px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+    .legal-wrap h3 {
+      font-size: 1rem; font-weight: 700;
+      color: var(--white); margin: 28px 0 10px;
+    }
+    .legal-wrap p { margin-bottom: 12px; }
+    .legal-wrap ul {
+      padding-left: 20px; margin-bottom: 12px;
+    }
+    .legal-wrap ul li { margin-bottom: 6px; }
+    .legal-wrap a { color: var(--orange); }
+
+    /* ── FOOTER ── */
+    footer {
+      background: #080a0f;
+      border-top: 1px solid var(--border);
+      padding: 48px 5% 32px;
+    }
+    .footer-inner {
+      max-width: 1200px; margin: 0 auto;
+    }
+    .footer-top {
+      display: flex; justify-content: space-between;
+      align-items: flex-start; flex-wrap: wrap; gap: 32px;
+      margin-bottom: 40px;
+      padding-bottom: 40px;
+      border-bottom: 1px solid var(--border);
+    }
+    .footer-brand .brand-name {
+      font-size: 1.5rem; font-weight: 900; letter-spacing: 1px;
+    }
+    .footer-brand .brand-name span { color: var(--orange); }
+    .footer-brand .tagline { font-size: 0.82rem; color: var(--muted); margin-top: 4px; }
+    .footer-nav { display: flex; gap: 56px; flex-wrap: wrap; }
+    .footer-col h4 { font-size: 0.8rem; font-weight: 700; color: var(--muted); letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 14px; }
+    .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .footer-col ul li a { color: var(--text); text-decoration: none; font-size: 0.875rem; transition: color 0.2s; }
+    .footer-col ul li a:hover { color: var(--orange); }
+    .footer-bottom {
+      display: flex; justify-content: space-between;
+      align-items: center; flex-wrap: wrap; gap: 12px;
+      font-size: 0.8rem; color: var(--muted);
+    }
+    .footer-bottom a { color: var(--muted); text-decoration: none; }
+    .footer-bottom a:hover { color: var(--orange); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      .hero-grid { grid-template-columns: 1fr; gap: 40px; }
+      .hero-visual { display: none; }
+      .problem-grid { grid-template-columns: 1fr; }
+      .features-grid { grid-template-columns: 1fr 1fr; }
+      .roles-wrap { grid-template-columns: 1fr; }
+      .trust-grid { grid-template-columns: repeat(2, 1fr); }
+      .about-grid { grid-template-columns: 1fr; gap: 32px; }
+      .nav-links, .nav-badge { display: none; }
+      .hamburger { display: flex; }
+    }
+    @media (max-width: 600px) {
+      .features-grid { grid-template-columns: 1fr; }
+      .trust-grid { grid-template-columns: 1fr 1fr; }
+      section { padding: 60px 5%; }
+      .legal-wrap { padding: 28px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════════ NAVBAR ════════ -->
+<nav>
+  <a href="#" class="nav-logo">SITE<span>MITRA</span></a>
+  <ul class="nav-links">
+    <li><a href="#features" data-en="Features" data-hi="सुविधाएं">Features</a></li>
+    <li><a href="#for-technicians" data-en="Technicians" data-hi="टेक्निशियन">Technicians</a></li>
+    <li><a href="#for-si" data-en="For SI" data-hi="SI के लिए">For SI</a></li>
+    <li><a href="#about" data-en="About" data-hi="हमारे बारे में">About</a></li>
+    <li><a href="#terms" data-en="T&amp;C" data-hi="नियम व शर्तें">T&amp;C</a></li>
+    <li><a href="#privacy" data-en="Privacy" data-hi="गोपनीयता">Privacy</a></li>
+  </ul>
+  <button class="lang-toggle" onclick="toggleLang()" id="langBtn">हिंदी</button>
+  <a href="#about" class="nav-badge">by Jenix</a>
+  <div class="hamburger" onclick="toggleMenu()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#features"        onclick="toggleMenu()" data-en="Features" data-hi="सुविधाएं">Features</a>
+  <a href="#for-technicians" onclick="toggleMenu()" data-en="For Technicians" data-hi="टेक्निशियन के लिए">For Technicians</a>
+  <a href="#for-si"          onclick="toggleMenu()" data-en="For System Integrators" data-hi="SI के लिए">For System Integrators</a>
+  <a href="#about"           onclick="toggleMenu()" data-en="About Us" data-hi="हमारे बारे में">About Us</a>
+  <a href="#terms"           onclick="toggleMenu()" data-en="Terms &amp; Conditions" data-hi="नियम व शर्तें">Terms &amp; Conditions</a>
+  <a href="#privacy"         onclick="toggleMenu()" data-en="Privacy Policy" data-hi="गोपनीयता नीति">Privacy Policy</a>
+  <button class="lang-toggle-mobile" onclick="toggleLang();toggleMenu();" id="langBtnMobile">🌐 हिंदी में देखें</button>
+</div>
+
+<!-- ════════ HERO ════════ -->
+<section class="hero" id="home">
+  <div class="hero-grid">
+    <div class="hero-content">
+      <div class="hero-badge" data-en="Free PWA · No App Store Needed" data-hi="मुफ्त PWA · App Store की ज़रूरत नहीं">Free PWA · No App Store Needed</div>
+      <h1>
+        <span class="brand">SITE<br>MITRA</span>
+      </h1>
+      <p class="hero-hindi">आपका Field Work Partner 🤝</p>
+      <p data-en="India's free platform connecting <strong>CCTV field technicians</strong> with <strong>System Integrators</strong>. Find nearby work. Assign skilled techs. Track every site visit — all in one place." data-hi="भारत का मुफ्त प्लेटफॉर्म जो <strong>CCTV फील्ड टेक्निशियन</strong> को <strong>System Integrators</strong> से जोड़ता है। नज़दीकी काम खोजें। कुशल टेक्निशियन असाइन करें। हर साइट विजिट ट्रैक करें।">India's free platform connecting <strong>CCTV field technicians</strong> with <strong>System Integrators</strong>. Find nearby work. Assign skilled techs. Track every site visit — all in one place.</p>
+      <div class="hero-ctas">
+        <a href="/onboarding" class="btn-primary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="5 12 12 5 19 12"/><polyline points="5 19 12 12 19 19"/></svg>
+          <span data-en="🚀 Try Now — Free" data-hi="🚀 अभी Try करें — मुफ्त">🚀 Try Now — Free</span>
+        </a>
+        <button id="installBtn" class="btn-install" onclick="triggerInstall()" style="display:none">
+          📲 <span data-en="Add to Phone" data-hi="Phone में Add करें">Add to Phone</span>
+        </button>
+        <a href="#features" class="btn-outline">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 8 16 12 12 16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+          <span data-en="Learn More" data-hi="और जानें">Learn More</span>
+        </a>
+      </div>
+      <div class="hero-pills">
+        <span class="pill" data-en="🆓 100% Free" data-hi="🆓 100% मुफ्त">🆓 100% Free</span>
+        <span class="pill" data-en="📍 Location-based" data-hi="📍 लोकेशन-आधारित">📍 Location-based</span>
+        <span class="pill" data-en="🔒 Google Login" data-hi="🔒 Google लॉगिन">🔒 Google Login</span>
+        <span class="pill" data-en="🇮🇳 Made for India" data-hi="🇮🇳 भारत के लिए">🇮🇳 Made for India</span>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="app-mockup">
+        <div class="mockup-bar">
+          <div class="mockup-notch"></div>
+        </div>
+        <div class="mockup-body">
+          <div class="mockup-card">
+            <div class="mockup-label">Your Status</div>
+            <div class="mockup-value" style="display:flex;align-items:center;gap:8px;justify-content:space-between">
+              Rajesh K. &nbsp;<span class="mockup-avail">Available Now</span>
+            </div>
+          </div>
+          <div class="mockup-row">
+            <div class="mockup-card">
+              <div class="mockup-label">Completed</div>
+              <div class="mockup-stat">47</div>
+            </div>
+            <div class="mockup-card">
+              <div class="mockup-label">Rating</div>
+              <div class="mockup-stat">4.8 ★</div>
+            </div>
+          </div>
+          <div class="mockup-card" style="border-color:rgba(232,99,10,0.35)">
+            <div class="mockup-label" style="color:#e8630a;font-weight:600">New Site Work</div>
+            <div class="mockup-value" style="font-size:0.75rem;margin-top:4px">IP Camera installation — Sector 14, Gurugram</div>
+            <div style="margin-top:8px;display:flex;gap:6px">
+              <span style="background:rgba(74,222,128,0.15);color:#4ade80;padding:3px 10px;border-radius:6px;font-size:0.65rem;font-weight:600">Accept</span>
+              <span style="background:rgba(248,113,113,0.12);color:#f87171;padding:3px 10px;border-radius:6px;font-size:0.65rem;font-weight:600">Reject</span>
+            </div>
+          </div>
+          <div class="mockup-card">
+            <div class="mockup-label">Nearby Techs</div>
+            <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px">
+              <div style="display:flex;justify-content:space-between;font-size:0.7rem"><span>Suresh M.</span><span style="color:#4ade80">1.2 km</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:0.7rem"><span>Vikram P.</span><span style="color:#4ade80">2.8 km</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ STATS STRIP ════════ -->
+<div class="stats-strip">
+  <div class="stats-inner">
+    <div class="stat-item">
+      <span class="stat-num">100%</span>
+      <span class="stat-label" data-en="Free to Use" data-hi="मुफ्त उपयोग">Free to Use</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">0</span>
+      <span class="stat-label" data-en="OTP Required" data-hi="OTP ज़रूरी नहीं">OTP Required</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">2</span>
+      <span class="stat-label" data-en="Roles — Tech &amp; SI" data-hi="भूमिकाएं — Tech &amp; SI">Roles — Tech &amp; SI</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">7 Days</span>
+      <span class="stat-label" data-en="Proof Photo Auto-Deleted" data-hi="प्रूफ फोटो 7 दिन में हटे">Proof Photo Auto-Deleted</span>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ PROBLEM ════════ -->
+<section class="problem" id="problem">
+  <div class="section-inner">
+    <div class="section-header center">
+      <div class="section-tag" data-en="THE PROBLEM" data-hi="समस्या">THE PROBLEM</div>
+      <h2 class="section-title" data-en="Field work coordination is <span>broken</span>" data-hi="फील्ड वर्क कोऑर्डिनेशन है <span>बाधित</span>">Field work coordination is <span>broken</span></h2>
+      <p class="section-sub" data-en="Every day, skilled CCTV technicians miss work opportunities while SIs struggle to find reliable field staff on short notice." data-hi="हर रोज़ कुशल CCTV टेक्निशियन काम के मौके चूकते हैं जबकि SI को भरोसेमंद फील्ड स्टाफ मिलना मुश्किल होता है।">Every day, skilled CCTV technicians miss work opportunities while SIs struggle to find reliable field staff on short notice.</p>
+    </div>
+    <div class="problem-grid">
+      <div class="problem-card">
+        <h3><span class="ico">🔧</span> <span data-en="Technicians Face" data-hi="टेक्निशियन की परेशानी">Technicians Face</span></h3>
+        <ul class="problem-list">
+          <li data-en="No way to show availability to nearby SIs" data-hi="नज़दीकी SI को उपलब्धता दिखाने का कोई तरीका नहीं">No way to show availability to nearby SIs</li>
+          <li data-en="No platform to build a verified work history" data-hi="सत्यापित कार्य इतिहास बनाने का कोई प्लेटफॉर्म नहीं">No platform to build a verified work history</li>
+          <li data-en="Depend on word-of-mouth for new clients" data-hi="नए ग्राहकों के लिए मुंह की बात पर निर्भरता">Depend on word-of-mouth for new clients</li>
+          <li data-en="No record of completed jobs or ratings" data-hi="पूरे किए कामों या रेटिंग का कोई रिकॉर्ड नहीं">No record of completed jobs or ratings</li>
+          <li data-en="Miss urgent site calls due to no discovery tool" data-hi="खोज उपकरण न होने से अर्जेंट साइट कॉल छूट जाती हैं">Miss urgent site calls due to no discovery tool</li>
+        </ul>
+      </div>
+      <div class="problem-card">
+        <h3><span class="ico">🏢</span> <span data-en="System Integrators Face" data-hi="System Integrators की परेशानी">System Integrators Face</span></h3>
+        <ul class="problem-list">
+          <li data-en="Can't find available field technicians fast" data-hi="उपलब्ध फील्ड टेक्निशियन जल्दी नहीं मिलते">Can't find available field technicians fast</li>
+          <li data-en="No way to verify a new tech's skill level" data-hi="नए टेक्निशियन का कौशल सत्यापित करने का तरीका नहीं">No way to verify a new tech's skill level</li>
+          <li data-en="No structured assignment &amp; status tracking" data-hi="असाइनमेंट और स्टेटस ट्रैकिंग की कोई व्यवस्था नहीं">No structured assignment &amp; status tracking</li>
+          <li data-en="Rely on calls &amp; WhatsApp with no accountability" data-hi="कॉल और WhatsApp पर निर्भरता, जवाबदेही नहीं">Rely on calls &amp; WhatsApp with no accountability</li>
+          <li data-en="Hard to build a trusted pool of go-to technicians" data-hi="भरोसेमंद टेक्निशियन पूल बनाना मुश्किल">Hard to build a trusted pool of go-to technicians</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ FEATURES ════════ -->
+<section id="features">
+  <div class="section-inner">
+    <div class="section-header center">
+      <div class="section-tag" data-en="FEATURES" data-hi="सुविधाएं">FEATURES</div>
+      <h2 class="section-title" data-en="Everything you need for <span>field work</span>" data-hi="फील्ड वर्क के लिए <span>सब कुछ यहाँ</span>">Everything you need for <span>field work</span></h2>
+      <p class="section-sub" data-en="Built specifically for India's CCTV and security system installation industry." data-hi="भारत के CCTV और सुरक्षा प्रणाली इंस्टॉलेशन उद्योग के लिए विशेष रूप से बनाया गया।">Built specifically for India's CCTV and security system installation industry.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feat-card">
+        <div class="feat-icon">📍</div>
+        <h3 data-en="Location-Based Discovery" data-hi="लोकेशन-आधारित खोज">Location-Based Discovery</h3>
+        <p data-en="SIs find available technicians within any radius — sorted by distance, skill match, and trust score." data-hi="SI किसी भी दायरे में उपलब्ध टेक्निशियन खोज सकते हैं — दूरी, स्किल और ट्रस्ट स्कोर के अनुसार।">SIs find available technicians within any radius — sorted by distance, skill match, and trust score.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">✅</div>
+        <h3 data-en="One-Tap Availability" data-hi="एक टैप उपलब्धता">One-Tap Availability</h3>
+        <p data-en="Technicians set status: Available Now, Available Today, or Tomorrow. No calls needed." data-hi="टेक्निशियन स्टेटस सेट करें: अभी उपलब्ध, आज उपलब्ध, या कल। कोई कॉल ज़रूरी नहीं।">Technicians set status: Available Now, Available Today, or Tomorrow. No calls needed.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">📋</div>
+        <h3 data-en="Site Work Management" data-hi="साइट वर्क मैनेजमेंट">Site Work Management</h3>
+        <p data-en="Assign, accept, track status from ACCEPTED → ON THE WAY → REACHED → COMPLETED." data-hi="असाइन करें, स्वीकार करें, ACCEPTED → ON THE WAY → REACHED → COMPLETED तक ट्रैक करें।">Assign, accept, track status from ACCEPTED → ON THE WAY → REACHED → COMPLETED.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">⭐</div>
+        <h3 data-en="Trust Score System" data-hi="ट्रस्ट स्कोर सिस्टम">Trust Score System</h3>
+        <p data-en="Each completed job builds a verifiable score. SIs rate punctuality, skill, and behaviour." data-hi="हर पूरा काम एक सत्यापित स्कोर बनाता है। SI समय पालन, कौशल और व्यवहार का मूल्यांकन करते हैं।">Each completed job builds a verifiable score. SIs rate punctuality, skill, and behaviour.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🖼️</div>
+        <h3 data-en="Proof Photo Upload" data-hi="प्रूफ फोटो अपलोड">Proof Photo Upload</h3>
+        <p data-en="Technician uploads one photo on completion. Auto-deleted in 7 days — no long-term storage." data-hi="टेक्निशियन काम पूरा होने पर एक फोटो अपलोड करता है। 7 दिनों में ऑटो-डिलीट।">Technician uploads one photo on completion. Auto-deleted in 7 days — no long-term storage.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🔔</div>
+        <h3 data-en="Instant Notifications" data-hi="तुरंत सूचनाएं">Instant Notifications</h3>
+        <p data-en="Push alerts for new work assignments, status changes, and reminders. Never miss a job." data-hi="नए काम के लिए पुश अलर्ट, स्टेटस बदलाव और रिमाइंडर। कोई काम मिस न करें।">Push alerts for new work assignments, status changes, and reminders. Never miss a job.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">👥</div>
+        <h3 data-en="Technician Pool" data-hi="टेक्निशियन पूल">Technician Pool</h3>
+        <p data-en="SIs build a private pool of verified, trusted technicians from past work history." data-hi="SI पिछले काम के इतिहास से विश्वसनीय टेक्निशियन का निजी पूल बनाते हैं।">SIs build a private pool of verified, trusted technicians from past work history.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🔗</div>
+        <h3 data-en="Public Profile &amp; Link" data-hi="पब्लिक प्रोफाइल और लिंक">Public Profile &amp; Link</h3>
+        <p data-en="Each technician gets a shareable profile link. SIs get a hiring page to attract talent." data-hi="हर टेक्निशियन को एक शेयर करने योग्य प्रोफाइल लिंक मिलती है।">Each technician gets a shareable profile link. SIs get a hiring page to attract talent.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">💬</div>
+        <h3 data-en="WhatsApp Share Templates" data-hi="WhatsApp संदेश टेम्पलेट">WhatsApp Share Templates</h3>
+        <p data-en="8 ready-made message templates in Hindi &amp; English to coordinate work via WhatsApp." data-hi="WhatsApp पर काम समन्वय के लिए 8 तैयार संदेश टेम्पलेट हिंदी और अंग्रेजी में।">8 ready-made message templates in Hindi &amp; English to coordinate work via WhatsApp.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ FOR TECHNICIANS ════════ -->
+<section class="problem" id="for-technicians">
+  <div class="section-inner">
+    <div class="section-header">
+      <div class="section-tag" data-en="FOR TECHNICIANS" data-hi="टेक्निशियन के लिए">FOR TECHNICIANS</div>
+      <h2 class="section-title" data-en="Get more work,<br><span>build your reputation</span>" data-hi="ज़्यादा काम पाएं,<br><span>अपनी पहचान बनाएं</span>">Get more work,<br><span>build your reputation</span></h2>
+      <p class="section-sub" data-en="Turn your field skills into a verified track record that SIs across your city can discover." data-hi="अपनी फील्ड स्किल को एक सत्यापित रिकॉर्ड में बदलें जिसे आपके शहर के SI खोज सकें।">Turn your field skills into a verified track record that SIs across your city can discover.</p>
+    </div>
+    <div class="roles-wrap">
+      <div class="role-card">
+        <div class="role-head">
+          <span class="role-emoji">🔧</span>
+          <h3>CCTV / IP Camera Technician</h3>
+          <p>For installers, service engineers, and field specialists</p>
+        </div>
+        <div class="role-body">
+          <ol class="role-steps">
+            <li><div class="step-num">1</div><div data-en="Sign up with Google. No OTP, no password." data-hi="Google से साइन अप करें। कोई OTP नहीं, कोई पासवर्ड नहीं।">Sign up with Google. No OTP, no password.</div></li>
+            <li><div class="step-num">2</div><div data-en="Build your profile — add skills, city, experience, and available tools." data-hi="अपनी प्रोफाइल बनाएं — स्किल, शहर, अनुभव और उपकरण जोड़ें।">Build your profile — add skills, city, experience, and available tools.</div></li>
+            <li><div class="step-num">3</div><div data-en='Toggle "Available Now" when you&apos;re ready for work.' data-hi='"अभी उपलब्ध" टॉगल करें जब काम के लिए तैयार हों।'>Toggle "Available Now" when you're ready for work.</div></li>
+            <li><div class="step-num">4</div><div data-en="Receive instant notifications when a nearby SI assigns site work." data-hi="नज़दीकी SI साइट काम असाइन करे तो तुरंत सूचना पाएं।">Receive instant notifications when a nearby SI assigns site work.</div></li>
+            <li><div class="step-num">5</div><div data-en="Accept, travel, complete — update status at each step." data-hi="स्वीकार करें, जाएं, पूरा करें — हर चरण पर स्टेटस अपडेट करें।">Accept, travel, complete — update status at each step.</div></li>
+            <li><div class="step-num">6</div><div data-en="Upload proof photo. Get rated. Build your trust score." data-hi="प्रूफ फोटो अपलोड करें। रेटिंग पाएं। ट्रस्ट स्कोर बनाएं।">Upload proof photo. Get rated. Build your trust score.</div></li>
+          </ol>
+        </div>
+      </div>
+      <div class="role-card">
+        <div class="role-head">
+          <span class="role-emoji">🛡️</span>
+          <h3>Your Skills Recognised</h3>
+          <p>Skills we support on the platform</p>
+        </div>
+        <div class="role-body">
+          <div style="display:flex;flex-wrap:wrap;gap:8px">
+            <span class="pill" style="background:rgba(232,99,10,0.1);border-color:rgba(232,99,10,0.3);color:#e8630a;">CCTV Installation</span>
+            <span class="pill" style="background:rgba(232,99,10,0.1);border-color:rgba(232,99,10,0.3);color:#e8630a;">IP Camera</span>
+            <span class="pill" style="background:rgba(232,99,10,0.1);border-color:rgba(232,99,10,0.3);color:#e8630a;">DVR / NVR</span>
+            <span class="pill" style="background:rgba(232,99,10,0.1);border-color:rgba(232,99,10,0.3);color:#e8630a;">LAN Cabling</span>
+            <span class="pill" style="background:rgba(232,99,10,0.1);border-color:rgba(232,99,10,0.3);color:#e8630a;">WiFi Bridge</span>
+            <span class="pill" style="background:rgba(232,99,10,0.1);border-color:rgba(232,99,10,0.3);color:#e8630a;">Biometric</span>
+            <span class="pill" style="background:rgba(232,99,10,0.1);border-color:rgba(232,99,10,0.3);color:#e8630a;">Access Control</span>
+            <span class="pill" style="background:rgba(232,99,10,0.1);border-color:rgba(232,99,10,0.3);color:#e8630a;">Alarm System</span>
+            <span class="pill" style="background:rgba(232,99,10,0.1);border-color:rgba(232,99,10,0.3);color:#e8630a;">Networking</span>
+            <span class="pill" style="background:rgba(232,99,10,0.1);border-color:rgba(232,99,10,0.3);color:#e8630a;">EdgeEye Setup</span>
+          </div>
+          <div style="margin-top:24px;padding:20px;background:rgba(255,255,255,0.03);border-radius:10px;border:1px solid var(--border)">
+            <div style="font-size:0.85rem;font-weight:600;margin-bottom:8px">Experience Levels</div>
+            <div style="display:flex;flex-direction:column;gap:6px;font-size:0.82rem;color:var(--muted)">
+              <div>🟢 New to field work</div>
+              <div>🟡 1+ Years experience</div>
+              <div>🟠 3+ Years experience</div>
+              <div>🔴 5+ Years experience</div>
+              <div>⭐ 10+ Years experience</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ FOR SI ════════ -->
+<section id="for-si">
+  <div class="section-inner">
+    <div class="section-header">
+      <div class="section-tag" data-en="FOR SYSTEM INTEGRATORS" data-hi="System Integrators के लिए">FOR SYSTEM INTEGRATORS</div>
+      <h2 class="section-title" data-en="Find the right tech,<br><span>right now</span>" data-hi="सही टेक्निशियन खोजें,<br><span>अभी</span>">Find the right tech,<br><span>right now</span></h2>
+      <p class="section-sub" data-en="Search, assign, and track field work — no more WhatsApp chaos or unreliable referrals." data-hi="खोजें, असाइन करें और ट्रैक करें — WhatsApp की अफरातफरी और अविश्वसनीय रेफरल से छुटकारा।">Search, assign, and track field work — no more WhatsApp chaos or unreliable referrals.</p>
+    </div>
+    <div class="roles-wrap">
+      <div class="role-card">
+        <div class="role-head">
+          <span class="role-emoji">🏢</span>
+          <h3>System Integrator / Contractor</h3>
+          <p>For SIs, dealers, contractors, and service providers</p>
+        </div>
+        <div class="role-body">
+          <ol class="role-steps">
+            <li><div class="step-num">1</div><div data-en="Sign up with Google. Set up your SI profile and business name." data-hi="Google से साइन अप करें। अपनी SI प्रोफाइल और व्यापार नाम सेट करें।">Sign up with Google. Set up your SI profile and business name.</div></li>
+            <li><div class="step-num">2</div><div data-en="Search for available technicians near any site location by skill." data-hi="किसी भी साइट के पास स्किल के अनुसार उपलब्ध टेक्निशियन खोजें।">Search for available technicians near any site location by skill.</div></li>
+            <li><div class="step-num">3</div><div data-en="View trust scores, completed work count, and distance before assigning." data-hi="असाइन करने से पहले ट्रस्ट स्कोर, पूरे काम और दूरी देखें।">View trust scores, completed work count, and distance before assigning.</div></li>
+            <li><div class="step-num">4</div><div data-en="Assign site work with client details, timing, and agreed charge." data-hi="क्लाइंट विवरण, समय और सहमत चार्ज के साथ साइट काम असाइन करें।">Assign site work with client details, timing, and agreed charge.</div></li>
+            <li><div class="step-num">5</div><div data-en="Track technician status in real time — on the way, reached, started, done." data-hi="टेक्निशियन का स्टेटस रियल टाइम में ट्रैक करें — रास्ते में, पहुंचा, शुरू, पूरा।">Track technician status in real time — on the way, reached, started, done.</div></li>
+            <li><div class="step-num">6</div><div data-en="Review proof photo, rate the technician, and close the job." data-hi="प्रूफ फोटो देखें, टेक्निशियन को रेट करें और काम बंद करें।">Review proof photo, rate the technician, and close the job.</div></li>
+          </ol>
+        </div>
+      </div>
+      <div class="role-card">
+        <div class="role-head">
+          <span class="role-emoji">📊</span>
+          <h3>Smart Discovery Engine</h3>
+          <p>How technicians are ranked in search results</p>
+        </div>
+        <div class="role-body">
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(255,255,255,0.03);border-radius:8px;border:1px solid var(--border);font-size:0.85rem">
+              <span>Current availability</span>
+              <span style="color:var(--orange-l);font-weight:600">+40 pts</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(255,255,255,0.03);border-radius:8px;border:1px solid var(--border);font-size:0.85rem">
+              <span>Location freshness</span>
+              <span style="color:var(--orange-l);font-weight:600">+20 pts</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(255,255,255,0.03);border-radius:8px;border:1px solid var(--border);font-size:0.85rem">
+              <span>Skill match</span>
+              <span style="color:var(--orange-l);font-weight:600">+5 per skill</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(255,255,255,0.03);border-radius:8px;border:1px solid var(--border);font-size:0.85rem">
+              <span>Proximity (under 2 km)</span>
+              <span style="color:var(--orange-l);font-weight:600">+15 pts</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(255,255,255,0.03);border-radius:8px;border:1px solid var(--border);font-size:0.85rem">
+              <span>Completed site work history</span>
+              <span style="color:var(--orange-l);font-weight:600">+1.5 per job</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(255,255,255,0.03);border-radius:8px;border:1px solid var(--border);font-size:0.85rem">
+              <span>Overdue / open work</span>
+              <span style="color:#f87171;font-weight:600">−10 pts</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ TRUST ════════ -->
+<section class="trust">
+  <div class="section-inner">
+    <div class="section-header center">
+      <div class="section-tag" data-en="TRUST &amp; SAFETY" data-hi="विश्वास और सुरक्षा">TRUST &amp; SAFETY</div>
+      <h2 class="section-title" data-en="Built on <span>accountability</span>" data-hi="<span>जवाबदेही</span> पर आधारित">Built on <span>accountability</span></h2>
+      <p class="section-sub" data-en="Every design decision puts platform integrity first." data-hi="हर डिज़ाइन निर्णय में प्लेटफॉर्म की ईमानदारी को प्राथमिकता दी गई है।">Every design decision puts platform integrity first.</p>
+    </div>
+    <div class="trust-grid">
+      <div class="trust-item">
+        <span class="t-icon">🚫</span>
+        <h4 data-en="No Self-Assignment" data-hi="खुद को असाइन नहीं">No Self-Assignment</h4>
+        <p data-en="SIs cannot assign work to themselves. Platform enforced." data-hi="SI खुद को काम असाइन नहीं कर सकते। प्लेटफॉर्म द्वारा सुनिश्चित।">SIs cannot assign work to themselves. Platform enforced.</p>
+      </div>
+      <div class="trust-item">
+        <span class="t-icon">📍</span>
+        <h4 data-en="Location After Accept" data-hi="स्वीकृति के बाद लोकेशन">Location After Accept</h4>
+        <p data-en="Exact technician location is only shared after work is accepted." data-hi="टेक्निशियन की सटीक लोकेशन काम स्वीकार होने के बाद ही शेयर होती है।">Exact technician location is only shared after work is accepted.</p>
+      </div>
+      <div class="trust-item">
+        <span class="t-icon">🗑️</span>
+        <h4 data-en="Auto Photo Deletion" data-hi="फोटो ऑटो-डिलीट">Auto Photo Deletion</h4>
+        <p data-en="Proof photos are permanently deleted within 7 days — no data hoarding." data-hi="प्रूफ फोटो 7 दिनों में स्थायी रूप से हट जाती है — कोई डेटा संग्रह नहीं।">Proof photos are permanently deleted within 7 days — no data hoarding.</p>
+      </div>
+      <div class="trust-item">
+        <span class="t-icon">🔐</span>
+        <h4 data-en="Google Sign-In Only" data-hi="सिर्फ Google साइन-इन">Google Sign-In Only</h4>
+        <p data-en="No passwords stored. No OTP friction. Verified Google accounts only." data-hi="कोई पासवर्ड संग्रहित नहीं। कोई OTP झंझट नहीं। केवल सत्यापित Google खाते।">No passwords stored. No OTP friction. Verified Google accounts only.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ ABOUT ════════ -->
+<section id="about">
+  <div class="section-inner">
+    <div class="about-grid">
+      <div class="about-left">
+        <div class="about-logo-block">
+          <div class="brand-big">SITE<span>MITRA</span></div>
+          <div class="by-line">by <strong>Jenix</strong> — Building tools for India's field workforce</div>
+        </div>
+        <p data-en="SiteMitra was born out of a real frustration: skilled CCTV technicians in India had no professional platform to showcase their availability and build a work history — and System Integrators had no efficient way to find verified field talent on demand." data-hi="SiteMitra एक वास्तविक समस्या से जन्मा: भारत के कुशल CCTV टेक्निशियन के पास अपनी उपलब्धता दिखाने और कार्य इतिहास बनाने का कोई प्लेटफॉर्म नहीं था — और System Integrators के पास मांग पर सत्यापित फील्ड टैलेंट खोजने का कोई कुशल तरीका नहीं था।">SiteMitra was born out of a real frustration: skilled CCTV technicians in India had no professional platform to showcase their availability and build a work history — and System Integrators had no efficient way to find verified field talent on demand.</p>
+        <p data-en="We built SiteMitra to bridge this gap. It is free, lightweight, and designed specifically for the security and surveillance installation industry in India." data-hi="हमने SiteMitra इस अंतर को पाटने के लिए बनाया। यह मुफ्त, हल्का और भारत के सुरक्षा और निगरानी इंस्टॉलेशन उद्योग के लिए विशेष रूप से डिज़ाइन किया गया है।">We built SiteMitra to bridge this gap. It is free, lightweight, and designed specifically for the security and surveillance installation industry in India.</p>
+        <p data-en="SiteMitra is a product of <strong>Jenix</strong>, a technology company building specialised software for India's IoT, security, and field service sectors." data-hi="SiteMitra, <strong>Jenix</strong> का उत्पाद है — भारत के IoT, सुरक्षा और फील्ड सेवा क्षेत्रों के लिए विशेष सॉफ्टवेयर बनाने वाली टेक्नोलॉजी कंपनी।">SiteMitra is a product of <strong>Jenix</strong>, a technology company building specialised software for India's IoT, security, and field service sectors.</p>
+      </div>
+      <div class="about-right">
+        <ul class="about-points">
+          <li>
+            <span class="pt-ico">🆓</span>
+            <div><strong>Forever Free</strong><span>SiteMitra is and will remain free for both technicians and SIs. No subscription, no commission, no hidden fees.</span></div>
+          </li>
+          <li>
+            <span class="pt-ico">🇮🇳</span>
+            <div><strong>Built for India</strong><span>Hindi and English support. Designed for the Indian CCTV installation market — cities, small towns, and everything in between.</span></div>
+          </li>
+          <li>
+            <span class="pt-ico">⚡</span>
+            <div><strong>Lightweight &amp; Fast</strong><span>Progressive Web App (PWA) — works on any Android device with a browser. Low data usage, offline-capable.</span></div>
+          </li>
+          <li>
+            <span class="pt-ico">🔒</span>
+            <div><strong>Privacy First</strong><span>We collect only what we need. Proof photos auto-deleted. Location shared only when relevant. No ads, ever.</span></div>
+          </li>
+          <li>
+            <span class="pt-ico">📞</span>
+            <div><strong>Contact Us</strong><span>Questions or feedback? Reach us at <a href="mailto:support@iotsoft.com" style="color:var(--orange)">support@iotsoft.com</a></span></div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ TERMS & CONDITIONS ════════ -->
+<section class="legal" id="terms">
+  <div class="section-inner">
+    <div class="section-header">
+      <div class="section-tag">LEGAL</div>
+      <h2 class="section-title">Terms &amp; <span>Conditions</span></h2>
+    </div>
+    <div class="legal-wrap">
+      <h2>Terms and Conditions — SiteMitra</h2>
+      <p class="legal-meta">
+        Effective Date: 5 June 2026 &nbsp;|&nbsp; Last Updated: 5 June 2026<br>
+        Developer: <strong>Jenix</strong> &nbsp;|&nbsp; Contact: <a href="mailto:support@iotsoft.com">support@iotsoft.com</a>
+      </p>
+
+      <h3>1. Acceptance of Terms</h3>
+      <p>By downloading, installing, or using the SiteMitra mobile application or website ("Platform", "App", "Service"), you agree to be legally bound by these Terms and Conditions ("Terms"). If you do not agree to these Terms, you must not use the Platform.</p>
+
+      <h3>2. About SiteMitra</h3>
+      <p>SiteMitra is a free field-service discovery platform developed by Jenix. It connects CCTV and security system field technicians ("Technicians") with System Integrators, contractors, and dealers ("SIs") across India. The Platform facilitates discovery, assignment, status tracking, and reputation management for field site work. SiteMitra does <strong>not</strong> process payments, guarantee work quality, or act as an employer.</p>
+
+      <h3>3. Eligibility</h3>
+      <ul>
+        <li>You must be at least 18 years of age to use SiteMitra.</li>
+        <li>You must possess a valid Google Account for authentication.</li>
+        <li>You must be an active professional in the CCTV, security system, networking, or related field service industry.</li>
+        <li>Registration as a Technician implies that you have the relevant skills you list on your profile.</li>
+      </ul>
+
+      <h3>4. Account Registration &amp; Authentication</h3>
+      <p>SiteMitra uses Google Sign-In as its sole authentication method. No passwords are created or stored on our servers. You may register as a Technician, a System Integrator (SI), or both. You are responsible for all activity that occurs under your account. You may not create multiple accounts to circumvent any platform restriction or re-register after being blocked for a violation.</p>
+
+      <h3>5. Platform Services</h3>
+      <p>SiteMitra provides the following services at no charge:</p>
+      <ul>
+        <li>Location-based discovery of available CCTV/security field technicians</li>
+        <li>Site work assignment, acceptance, and real-time status tracking</li>
+        <li>Trust score and rating system based on verified completed work</li>
+        <li>Proof photo upload (temporary storage, max 7 days)</li>
+        <li>Push notifications via Firebase Cloud Messaging</li>
+        <li>Public technician profiles and SI hiring pages</li>
+        <li>Technician pool management for SIs</li>
+        <li>WhatsApp message templates for field work coordination</li>
+      </ul>
+
+      <h3>6. What SiteMitra Does NOT Provide</h3>
+      <ul>
+        <li>Payment processing, escrow, or any financial transaction services</li>
+        <li>Guarantee of technician skill, punctuality, or work quality</li>
+        <li>Dispute resolution, arbitration, or legal mediation between users</li>
+        <li>Employment contracts, labour law compliance, or payroll services</li>
+        <li>Background verification or criminal record checks</li>
+      </ul>
+      <p>All financial arrangements between SIs and Technicians — including visit charges, material costs, and payment mode — are agreed directly between the parties. SiteMitra is not a party to any such agreement and bears no liability for payment defaults or disputes.</p>
+
+      <h3>7. User Conduct</h3>
+      <p>You agree not to:</p>
+      <ul>
+        <li>Provide false, misleading, or fabricated information about your identity, skills, location, or business</li>
+        <li>Harass, threaten, intimidate, or defame other users</li>
+        <li>Manipulate trust scores, ratings, or work history through fraudulent means</li>
+        <li>Use the Platform to solicit users off-platform in order to bypass the accountability system</li>
+        <li>Upload content that is illegal, obscene, offensive, or violates any third-party rights</li>
+        <li>Attempt to access accounts, systems, or data that you are not authorised to access</li>
+        <li>Use automated scripts, bots, or crawlers to interact with the Platform</li>
+        <li>Interfere with or disrupt the Platform's servers or networks</li>
+      </ul>
+
+      <h3>8. Self-Assignment Prohibition</h3>
+      <p>The Platform technically prevents any user from assigning site work to themselves. A user registered as both a Technician and an SI may not use their SI account to create work for their own Technician account.</p>
+
+      <h3>9. Proof Photos</h3>
+      <p>A Technician may upload one proof photo per site work upon marking work as completed. This photo:</p>
+      <ul>
+        <li>Is stored temporarily for a maximum of 7 days or until the SI closes the site work, whichever comes first</li>
+        <li>Is deleted automatically and permanently after this period</li>
+        <li>Is accessible only to the specific SI and Technician involved in that site work</li>
+        <li>Is not shared publicly and is not used for any commercial purpose</li>
+        <li>Must depict legitimate site work completion and must not contain any illegal, harmful, or personal content beyond the scope of work verification</li>
+      </ul>
+
+      <h3>10. Location Data</h3>
+      <p>Technician GPS location is collected only when the Technician actively sets their availability status to "Available Now", "Available Today", or "Available Tomorrow". Location is:</p>
+      <ul>
+        <li>Not collected in the background or when availability is set to "Offline"</li>
+        <li>Used solely to enable SIs to discover technicians near a job site</li>
+        <li>Only shared with a specific SI after that SI's site work has been accepted by the Technician</li>
+        <li>Not sold, rented, or shared with any third party for advertising purposes</li>
+      </ul>
+
+      <h3>11. Ratings &amp; Trust Score</h3>
+      <p>Trust scores are calculated based on completed work, unique SIs worked with, repeat engagements, ratings, and negative signals such as no-shows or cancellations after acceptance. Ratings submitted by SIs must be honest and reflect genuine work experience. Submission of false ratings is a violation of these Terms and may result in account suspension.</p>
+
+      <h3>12. Intellectual Property</h3>
+      <p>The SiteMitra name, logo, design, and platform architecture are the intellectual property of Jenix. You are granted a limited, non-exclusive, non-transferable licence to use the Platform for its intended purposes. You may not reproduce, distribute, modify, reverse-engineer, or create derivative works from the Platform without the prior written consent of Jenix.</p>
+
+      <h3>13. Disclaimer of Warranties</h3>
+      <p>The Platform is provided "as is" and "as available" without any warranties, express or implied. Jenix does not warrant that the Platform will be uninterrupted, error-free, or that results obtained through the Platform will be accurate or reliable. Jenix is not responsible for the conduct, skills, identity, or reliability of any user.</p>
+
+      <h3>14. Limitation of Liability</h3>
+      <p>To the fullest extent permitted by applicable law, Jenix and its officers, directors, employees, and agents shall not be liable for:</p>
+      <ul>
+        <li>Any direct, indirect, incidental, or consequential damages arising from use or inability to use the Platform</li>
+        <li>Losses or damages resulting from disputes, payment defaults, or physical work quality issues between SIs and Technicians</li>
+        <li>Inaccurate skill or availability information provided by users</li>
+        <li>Interruptions, errors, or security breaches beyond our reasonable control</li>
+      </ul>
+
+      <h3>15. Account Suspension &amp; Termination</h3>
+      <p>Jenix reserves the right to suspend or permanently block any account that violates these Terms, provides false information, or acts in a manner harmful to other users or the Platform. You may request deletion of your account at any time by contacting <a href="mailto:support@iotsoft.com">support@iotsoft.com</a>. Upon verified deletion, your personal data will be removed within 30 days.</p>
+
+      <h3>16. Changes to Terms</h3>
+      <p>Jenix may update these Terms at any time. Material changes will be communicated through the App. Continued use of the Platform after changes are posted constitutes acceptance of the revised Terms.</p>
+
+      <h3>17. Governing Law &amp; Jurisdiction</h3>
+      <p>These Terms shall be governed by and construed in accordance with the laws of India. Any disputes arising under or in connection with these Terms shall be subject to the exclusive jurisdiction of the competent courts in India.</p>
+
+      <h3>18. Contact</h3>
+      <p>For questions, concerns, or complaints regarding these Terms:<br>
+      Email: <a href="mailto:support@iotsoft.com">support@iotsoft.com</a><br>
+      Developer: Jenix</p>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ PRIVACY POLICY ════════ -->
+<section id="privacy" style="background:var(--dark)">
+  <div class="section-inner">
+    <div class="section-header">
+      <div class="section-tag">LEGAL</div>
+      <h2 class="section-title">Privacy <span>Policy</span></h2>
+    </div>
+    <div class="legal-wrap">
+      <h2>Privacy Policy — SiteMitra</h2>
+      <p class="legal-meta">
+        Effective Date: 5 June 2026 &nbsp;|&nbsp; Last Updated: 5 June 2026<br>
+        Developer: <strong>Jenix</strong> &nbsp;|&nbsp; Privacy Contact: <a href="mailto:privacy@iotsoft.com">privacy@iotsoft.com</a>
+      </p>
+
+      <h3>1. Introduction</h3>
+      <p>SiteMitra ("we", "our", "us"), developed by Jenix, is committed to protecting the privacy of all users ("you", "your"). This Privacy Policy explains what personal data we collect, why we collect it, how we use it, and your rights in relation to it.</p>
+      <p>By using the SiteMitra application or website, you acknowledge that you have read and understood this Privacy Policy.</p>
+
+      <h3>2. Information We Collect</h3>
+
+      <h3>2.1 Account Information (via Google Sign-In)</h3>
+      <p>When you sign in using your Google Account, we receive:</p>
+      <ul>
+        <li><strong>Full name</strong> — displayed on your profile</li>
+        <li><strong>Email address</strong> — used as your unique account identifier and for admin communications</li>
+        <li><strong>Google Account ID</strong> — used internally to link your Google identity to your SiteMitra account</li>
+        <li><strong>Profile photo URL</strong> — displayed on your profile (hosted by Google)</li>
+        <li><strong>Email verification status</strong> — to ensure account quality</li>
+      </ul>
+      <p>We do not receive your Google password. Authentication is handled entirely by Google's OAuth 2.0 infrastructure.</p>
+
+      <h3>2.2 Profile Information (provided by you)</h3>
+      <ul>
+        <li><strong>Mobile phone number</strong> — entered manually, used for SI contact and work coordination</li>
+        <li><strong>City and working areas</strong> — used to match technicians with nearby SIs</li>
+        <li><strong>Skills, experience level, and tools</strong> — used in discovery search and profile display</li>
+        <li><strong>Vehicle type</strong> — used in profile and discovery</li>
+        <li><strong>Business name and type</strong> (SI users only) — displayed on SI profile</li>
+      </ul>
+
+      <h3>2.3 Location Data (Technicians Only)</h3>
+      <ul>
+        <li><strong>GPS coordinates</strong> (latitude and longitude), accuracy, and timestamp of last update</li>
+        <li>Collected <strong>only</strong> when a Technician explicitly sets availability to "Available Now", "Available Today", or "Available Tomorrow"</li>
+        <li><strong>Not collected in the background</strong> — only on-demand when the user performs the availability update action</li>
+        <li>Stored in our database and updated each time the Technician updates their location via the app</li>
+        <li>Deleted when the user's account is deleted</li>
+      </ul>
+
+      <h3>2.4 Proof Photos</h3>
+      <ul>
+        <li>One photo per completed site work, uploaded voluntarily by the Technician</li>
+        <li>Resized and converted to WebP format (max 1200×900 px) before storage</li>
+        <li>Stored in a temporary server-side directory — <strong>not publicly accessible by URL</strong></li>
+        <li>Permanently deleted within <strong>7 days</strong> of upload, or immediately when the SI closes the site work — whichever comes first</li>
+        <li>A SHA-256 hash of the file is retained for record-keeping after the file is deleted</li>
+      </ul>
+
+      <h3>2.5 Push Notification Tokens</h3>
+      <ul>
+        <li>Firebase Cloud Messaging (FCM) device token, collected when you enable notifications</li>
+        <li>Device platform (web, Android, or iOS)</li>
+        <li>Used solely to deliver push notifications about site work events</li>
+        <li>Deleted when you log out or when Firebase marks the token as invalid</li>
+      </ul>
+
+      <h3>2.6 Terms Acceptance Record</h3>
+      <ul>
+        <li>IP address at the time you accepted the Terms and Privacy Policy</li>
+        <li>User-agent string of your browser/device at that time</li>
+        <li>Timestamp of acceptance</li>
+        <li>Version of Terms and Privacy Policy accepted</li>
+      </ul>
+      <p>This is stored for legal compliance purposes only.</p>
+
+      <h3>2.7 Usage Data</h3>
+      <ul>
+        <li><strong>Last active timestamp</strong> — updated on each authenticated API request</li>
+        <li>We do not use third-party analytics SDKs, advertising networks, or behavioural tracking tools</li>
+      </ul>
+
+      <h3>3. How We Use Your Information</h3>
+      <ul>
+        <li>To create, authenticate, and manage your SiteMitra account</li>
+        <li>To enable SIs to discover nearby available Technicians based on location and skills</li>
+        <li>To create and manage site work assignments between SIs and Technicians</li>
+        <li>To calculate and display trust scores based on verified completed work</li>
+        <li>To send push notifications for site work events (new assignment, status changes, reminders)</li>
+        <li>To generate an auto-written profile bio in Hindi and English based on your skills</li>
+        <li>To enforce our Terms of Service (e.g., detecting and blocking policy violators)</li>
+        <li>To provide admin tools for platform moderation</li>
+      </ul>
+
+      <h3>4. Data Sharing</h3>
+      <p>We do <strong>not sell, rent, or trade your personal data</strong>. We share your data only in the following limited circumstances:</p>
+
+      <h3>4.1 With Other Users (within the Platform)</h3>
+      <ul>
+        <li>A Technician's name, city, skills, availability, trust score, and profile photo are visible to searching SIs</li>
+        <li>A Technician's <strong>exact location</strong> is shared with a specific SI <strong>only after</strong> that SI's site work has been accepted</li>
+        <li>An SI's name and business name are visible to assigned Technicians</li>
+        <li>Mobile numbers are shared only between parties in an active site work assignment</li>
+      </ul>
+
+      <h3>4.2 With Third-Party Service Providers</h3>
+      <ul>
+        <li><strong>Google (Firebase)</strong> — for push notification delivery via FCM</li>
+        <li><strong>Google LLC</strong> — for authentication via Google Sign-In / OAuth 2.0</li>
+        <li><strong>Google Fonts</strong> — for web font delivery (no personal data shared)</li>
+      </ul>
+      <p>These providers are bound by their own privacy policies. We do not share your data with any advertising networks or data brokers.</p>
+
+      <h3>4.3 Legal Disclosure</h3>
+      <p>We may disclose your information if required to do so by law, court order, or in response to a legitimate request by law enforcement authorities under Indian law (including the Information Technology Act, 2000 and its amendments).</p>
+
+      <h3>5. Data Retention</h3>
+      <ul>
+        <li><strong>Account data</strong> — retained while your account is active; deleted within 30 days of a verified account deletion request</li>
+        <li><strong>Location coordinates</strong> — overwritten with each update; deleted on account deletion</li>
+        <li><strong>Proof photos</strong> — maximum 7 days; deleted immediately upon work closure or expiry</li>
+        <li><strong>FCM tokens</strong> — deleted on logout; auto-removed when Firebase marks them as invalid</li>
+        <li><strong>Terms acceptance record</strong> — retained for legal compliance even after account deletion</li>
+      </ul>
+
+      <h3>6. Data Security</h3>
+      <p>We implement the following security measures to protect your data:</p>
+      <ul>
+        <li>All data transmitted between the app and our servers is encrypted using HTTPS/TLS</li>
+        <li>Authentication uses JWT tokens with a 30-day expiry; no passwords are stored</li>
+        <li>Database access is restricted to our application server — no direct public access</li>
+        <li>Proof photos are stored server-side in a non-public directory and are not accessible via a guessable public URL</li>
+        <li>Rate limiting is applied to all API endpoints to prevent abuse</li>
+        <li>HTTP security headers (via Helmet.js) are enforced on all responses</li>
+      </ul>
+      <p>While we take reasonable precautions, no method of internet transmission or storage is 100% secure. We cannot guarantee absolute security.</p>
+
+      <h3>7. Your Rights</h3>
+      <p>As a user of SiteMitra, you have the right to:</p>
+      <ul>
+        <li><strong>Access</strong> — request a summary of the personal data we hold about you</li>
+        <li><strong>Correction</strong> — update inaccurate information directly via the app's profile settings</li>
+        <li><strong>Deletion</strong> — request deletion of your account and all associated personal data by contacting <a href="mailto:privacy@iotsoft.com">privacy@iotsoft.com</a>. Deletion will be completed within 30 days.</li>
+        <li><strong>Location withdrawal</strong> — stop location sharing at any time by setting your availability to "Offline" in the app</li>
+        <li><strong>Notification opt-out</strong> — disable push notifications via your device settings at any time</li>
+      </ul>
+      <p>To exercise any of these rights, contact us at <a href="mailto:privacy@iotsoft.com">privacy@iotsoft.com</a>.</p>
+
+      <h3>8. Children's Privacy</h3>
+      <p>SiteMitra is intended for professionals aged 18 and above. We do not knowingly collect personal data from users under 18 years of age. If we become aware that a user is under 18, their account will be deleted promptly. If you believe a minor has used the Platform, please notify us immediately at <a href="mailto:privacy@iotsoft.com">privacy@iotsoft.com</a>.</p>
+
+      <h3>9. Third-Party Links</h3>
+      <p>The Platform may contain links to third-party websites (e.g., Google Play Store). We are not responsible for the privacy practices of those sites and encourage you to review their respective privacy policies.</p>
+
+      <h3>10. Changes to This Privacy Policy</h3>
+      <p>We may update this Privacy Policy from time to time to reflect changes in our practices or for legal, operational, or regulatory reasons. Material changes will be communicated through the App. The "Last Updated" date at the top of this page will reflect the most recent revision. Continued use of the Platform after changes constitutes acceptance.</p>
+
+      <h3>11. Contact Us</h3>
+      <p>For any privacy-related questions, data access requests, or account deletion requests:<br>
+      <strong>Email:</strong> <a href="mailto:privacy@iotsoft.com">privacy@iotsoft.com</a><br>
+      <strong>General Support:</strong> <a href="mailto:support@iotsoft.com">support@iotsoft.com</a><br>
+      <strong>Developer:</strong> Jenix</p>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ FOOTER ════════ -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="brand-name">SITE<span>MITRA</span></div>
+        <div class="tagline">CCTV Field Work Platform · by Jenix</div>
+        <div style="margin-top:16px;font-size:0.8rem;color:var(--muted)" data-en="Made with ❤️ for India's field workforce" data-hi="भारत के फील्ड वर्कफोर्स के लिए ❤️ से बनाया">
+          Made with ❤️ for India's field workforce
+        </div>
+      </div>
+      <div class="footer-nav">
+        <div class="footer-col">
+          <h4>Platform</h4>
+          <ul>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#for-technicians">For Technicians</a></li>
+            <li><a href="#for-si">For System Integrators</a></li>
+            <li><a href="#about">About Us</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Legal</h4>
+          <ul>
+            <li><a href="#terms">Terms &amp; Conditions</a></li>
+            <li><a href="#privacy">Privacy Policy</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Contact</h4>
+          <ul>
+            <li><a href="mailto:support@iotsoft.com">support@iotsoft.com</a></li>
+            <li><a href="mailto:privacy@iotsoft.com">privacy@iotsoft.com</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Jenix. All rights reserved. SiteMitra is a free platform.</span>
+      <span>
+        <a href="#terms">Terms</a> &nbsp;·&nbsp;
+        <a href="#privacy">Privacy</a> &nbsp;·&nbsp;
+        <a href="mailto:support@iotsoft.com">Contact</a>
+      </span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  function toggleMenu() {
+    document.getElementById('mobileMenu').classList.toggle('open');
+  }
+  window.addEventListener('scroll', () => {
+    document.getElementById('mobileMenu').classList.remove('open');
+  });
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    });
+  }
+
+  // ── LANGUAGE SWITCHER ──
+  var _lang = localStorage.getItem('sm_lang') || 'hi';
+
+  function setLang(lang) {
+    _lang = lang;
+    localStorage.setItem('sm_lang', lang);
+    document.documentElement.setAttribute('data-lang', lang);
+    document.querySelectorAll('[data-en]').forEach(function(el) {
+      var txt = el.getAttribute('data-' + lang) || el.getAttribute('data-en');
+      if (txt) el.innerHTML = txt;
+    });
+    var btnLabel = lang === 'hi' ? 'EN' : 'हिंदी';
+    var mobileBtnLabel = lang === 'hi' ? '🌐 English में देखें' : '🌐 हिंदी में देखें';
+    var b = document.getElementById('langBtn');
+    var bm = document.getElementById('langBtnMobile');
+    if (b) b.textContent = btnLabel;
+    if (bm) bm.textContent = mobileBtnLabel;
+  }
+
+  function toggleLang() {
+    setLang(_lang === 'hi' ? 'en' : 'hi');
+  }
+
+  // Apply saved language on load (default: hi)
+  document.addEventListener('DOMContentLoaded', function() { setLang(_lang); });
+
+  // ── PWA INSTALL PROMPT ──
+  var deferredPrompt = null;
+
+  window.addEventListener('beforeinstallprompt', function(e) {
+    e.preventDefault();
+    deferredPrompt = e;
+    var btn = document.getElementById('installBtn');
+    if (btn) btn.style.display = 'inline-flex';
+  });
+
+  window.addEventListener('appinstalled', function() {
+    var btn = document.getElementById('installBtn');
+    if (btn) btn.style.display = 'none';
+    deferredPrompt = null;
+  });
+
+  // iOS: show install button always (Safari share → Add to Home Screen)
+  if (/iphone|ipad|ipod/i.test(navigator.userAgent) && !window.navigator.standalone) {
+    document.addEventListener('DOMContentLoaded', function() {
+      var btn = document.getElementById('installBtn');
+      if (btn) btn.style.display = 'inline-flex';
+    });
+  }
+
+  function triggerInstall() {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(function() { deferredPrompt = null; });
+    } else if (/iphone|ipad|ipod/i.test(navigator.userAgent)) {
+      var msg = _lang === 'hi'
+        ? 'Safari में नीचे Share बटन tap करें → "Add to Home Screen" select करें।'
+        : 'In Safari: tap the Share button at the bottom → select "Add to Home Screen".';
+      alert(msg);
+    } else {
+      window.location.href = '/onboarding';
+    }
+  }
+</script>
+</body>
+</html>

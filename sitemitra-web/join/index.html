@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <title>Install SiteMitra – Field Work App</title>
+  <meta name="description" content="Install SiteMitra on your phone. Free app for CCTV field technicians and System Integrators across India."/>
+  <link rel="manifest" href="/manifest.json"/>
+  <meta name="theme-color" content="#e8630a"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="SiteMitra"/>
+  <link rel="apple-touch-icon" href="/icon-192.png"/>
+  <link rel="icon" type="image/svg+xml" href="/icon.svg"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --or:#e8630a;--orl:#ff8534;--dark:#0f1117;--dark2:#1a1d27;
+      --card:#1e2130;--white:#fff;--text:#d0cdc8;--muted:#7a7f96;
+      --border:rgba(255,255,255,0.09);--r:16px;
+    }
+    html{scroll-behavior:smooth;height:100%}
+    body{
+      font-family:'Poppins',sans-serif;
+      background:var(--dark);color:var(--white);
+      min-height:100%;overflow-x:hidden;
+      padding-bottom:env(safe-area-inset-bottom);
+    }
+
+    /* ── TOP BAR ── */
+    .topbar{
+      padding:16px 20px;
+      display:flex;align-items:center;justify-content:space-between;
+      border-bottom:1px solid var(--border);
+      background:rgba(15,17,23,0.9);
+      backdrop-filter:blur(12px);
+      position:sticky;top:0;z-index:50;
+    }
+    .topbar-logo{font-size:1.1rem;font-weight:900;letter-spacing:1px}
+    .topbar-logo span{color:var(--or)}
+    .topbar-badge{
+      font-size:0.7rem;font-weight:600;
+      background:rgba(232,99,10,0.15);
+      color:var(--orl);border:1px solid rgba(232,99,10,0.3);
+      padding:4px 10px;border-radius:20px;
+    }
+
+    /* ── HERO ── */
+    .hero{
+      padding:40px 24px 32px;
+      text-align:center;position:relative;overflow:hidden;
+    }
+    .hero::before{
+      content:'';position:absolute;inset:0;
+      background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(232,99,10,0.15),transparent 70%);
+      pointer-events:none;
+    }
+    .app-icon{
+      width:88px;height:88px;
+      border-radius:22px;margin:0 auto 16px;
+      background:linear-gradient(135deg,var(--orl),var(--or));
+      display:flex;align-items:center;justify-content:center;
+      font-size:2.2rem;font-weight:900;color:#fff;
+      box-shadow:0 8px 32px rgba(232,99,10,0.4);
+      letter-spacing:-1px;
+      position:relative;z-index:1;
+    }
+    .hero h1{
+      font-size:2rem;font-weight:900;letter-spacing:-0.5px;
+      line-height:1.1;margin-bottom:6px;position:relative;z-index:1;
+    }
+    .hero h1 span{
+      background:linear-gradient(135deg,var(--orl),var(--or));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+      background-clip:text;
+    }
+    .hero-sub{font-size:0.88rem;color:var(--muted);margin-bottom:4px;position:relative;z-index:1}
+    .hero-hindi{font-size:1rem;color:var(--text);font-weight:500;margin-bottom:28px;position:relative;z-index:1}
+
+    /* ── INSTALL BUTTON ── */
+    .install-zone{
+      display:flex;flex-direction:column;align-items:center;gap:12px;
+      padding:0 24px 8px;position:relative;z-index:1;
+    }
+    #btn-install{
+      width:100%;max-width:360px;
+      padding:18px 24px;
+      background:linear-gradient(135deg,var(--orl),var(--or));
+      color:#fff;border:none;border-radius:14px;
+      font-family:'Poppins',sans-serif;font-size:1rem;font-weight:700;
+      cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;
+      box-shadow:0 4px 24px rgba(232,99,10,0.45);
+      transition:transform 0.15s,opacity 0.2s;
+      -webkit-tap-highlight-color:transparent;
+    }
+    #btn-install:active{transform:scale(0.97)}
+    #btn-install:disabled{opacity:0.5;cursor:default}
+    .installed-msg{
+      display:none;
+      width:100%;max-width:360px;
+      padding:16px 20px;
+      background:rgba(74,222,128,0.1);
+      border:1px solid rgba(74,222,128,0.3);
+      border-radius:14px;
+      color:#4ade80;font-size:0.9rem;font-weight:600;
+      text-align:center;
+    }
+    .share-row{
+      display:flex;gap:10px;width:100%;max-width:360px;
+    }
+    .btn-share{
+      flex:1;padding:13px;
+      background:var(--card);border:1px solid var(--border);
+      color:var(--text);border-radius:12px;
+      font-family:'Poppins',sans-serif;font-size:0.85rem;font-weight:600;
+      cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;
+      -webkit-tap-highlight-color:transparent;
+      transition:border-color 0.2s;
+    }
+    .btn-share:active{background:rgba(255,255,255,0.05)}
+
+    /* ── DIVIDER ── */
+    .divider{
+      display:flex;align-items:center;gap:12px;
+      padding:20px 24px 4px;max-width:360px;margin:0 auto;
+    }
+    .divider::before,.divider::after{
+      content:'';flex:1;height:1px;background:var(--border);
+    }
+    .divider span{font-size:0.75rem;color:var(--muted);white-space:nowrap}
+
+    /* ── HOW TO INSTALL ── */
+    .how{padding:4px 24px 28px}
+    .how-tabs{
+      display:flex;gap:8px;margin-bottom:20px;
+      max-width:360px;margin-left:auto;margin-right:auto;
+    }
+    .tab-btn{
+      flex:1;padding:10px 4px;
+      background:var(--card);border:1px solid var(--border);
+      color:var(--muted);border-radius:10px;
+      font-family:'Poppins',sans-serif;font-size:0.8rem;font-weight:600;
+      cursor:pointer;-webkit-tap-highlight-color:transparent;
+      transition:all 0.2s;
+    }
+    .tab-btn.active{
+      background:rgba(232,99,10,0.12);
+      border-color:rgba(232,99,10,0.4);
+      color:var(--orl);
+    }
+    .tab-panel{display:none;max-width:360px;margin:0 auto}
+    .tab-panel.active{display:block}
+    .steps{display:flex;flex-direction:column;gap:12px}
+    .step{
+      display:flex;gap:14px;align-items:flex-start;
+      background:var(--card);border:1px solid var(--border);
+      border-radius:12px;padding:14px 16px;
+    }
+    .step-num{
+      width:28px;height:28px;flex-shrink:0;
+      background:var(--or);color:#fff;border-radius:50%;
+      display:flex;align-items:center;justify-content:center;
+      font-size:0.75rem;font-weight:700;
+    }
+    .step-text{font-size:0.875rem;color:var(--text);line-height:1.5}
+    .step-text strong{color:var(--white);display:block;margin-bottom:2px}
+    .tip{
+      margin-top:14px;padding:12px 16px;
+      background:rgba(232,99,10,0.07);
+      border:1px solid rgba(232,99,10,0.2);
+      border-radius:10px;font-size:0.8rem;color:var(--muted);
+      max-width:360px;margin-left:auto;margin-right:auto;
+    }
+    .tip strong{color:var(--orl)}
+
+    /* ── WHAT YOU GET ── */
+    .features{padding:8px 24px 32px}
+    .features h2{
+      font-size:1.1rem;font-weight:800;text-align:center;
+      margin-bottom:18px;
+    }
+    .features h2 span{color:var(--or)}
+    .feat-grid{
+      display:grid;grid-template-columns:1fr 1fr;
+      gap:10px;max-width:360px;margin:0 auto;
+    }
+    .feat{
+      background:var(--card);border:1px solid var(--border);
+      border-radius:12px;padding:14px 12px;text-align:center;
+    }
+    .feat .ico{font-size:1.5rem;display:block;margin-bottom:6px}
+    .feat strong{font-size:0.8rem;display:block;font-weight:700;margin-bottom:3px}
+    .feat span{font-size:0.72rem;color:var(--muted);line-height:1.4}
+
+    /* ── ROLE CARDS ── */
+    .roles{padding:0 24px 32px}
+    .roles h2{font-size:1.1rem;font-weight:800;text-align:center;margin-bottom:18px}
+    .roles h2 span{color:var(--or)}
+    .role-cards{display:flex;flex-direction:column;gap:12px;max-width:360px;margin:0 auto}
+    .role-card{
+      background:var(--card);border:1px solid var(--border);
+      border-radius:14px;padding:18px 20px;
+      display:flex;gap:14px;align-items:center;
+      cursor:pointer;-webkit-tap-highlight-color:transparent;
+      transition:border-color 0.2s,transform 0.15s;
+    }
+    .role-card:active{transform:scale(0.98)}
+    .role-card.selected{
+      border-color:rgba(232,99,10,0.5);
+      background:rgba(232,99,10,0.07);
+    }
+    .role-emoji{font-size:2rem;flex-shrink:0}
+    .role-info strong{font-size:0.95rem;font-weight:700;display:block;margin-bottom:4px}
+    .role-info span{font-size:0.8rem;color:var(--muted);line-height:1.4}
+    .role-check{
+      margin-left:auto;width:22px;height:22px;flex-shrink:0;
+      border:2px solid var(--border);border-radius:50%;
+      display:flex;align-items:center;justify-content:center;
+      transition:all 0.2s;
+    }
+    .role-card.selected .role-check{
+      background:var(--or);border-color:var(--or);
+    }
+    .role-check::after{
+      content:'✓';font-size:0.7rem;color:#fff;
+      opacity:0;transition:opacity 0.2s;
+    }
+    .role-card.selected .role-check::after{opacity:1}
+
+    /* ── QR SECTION ── */
+    .qr-section{
+      padding:0 24px 32px;text-align:center;
+    }
+    .qr-section h2{font-size:1rem;font-weight:700;margin-bottom:6px}
+    .qr-section p{font-size:0.8rem;color:var(--muted);margin-bottom:16px}
+    .qr-box{
+      display:inline-block;
+      background:#fff;padding:12px;border-radius:12px;
+      box-shadow:0 4px 20px rgba(0,0,0,0.3);
+    }
+    .qr-url{
+      margin-top:12px;font-size:0.78rem;color:var(--muted);
+    }
+    .qr-url strong{color:var(--orl)}
+
+    /* ── FOOTER ── */
+    footer{
+      padding:20px 24px 32px;text-align:center;
+      border-top:1px solid var(--border);
+    }
+    footer p{font-size:0.75rem;color:var(--muted);line-height:1.7}
+    footer a{color:var(--or);text-decoration:none}
+
+    /* ── STANDALONE BANNER (shown when already installed) ── */
+    .standalone-banner{
+      display:none;
+      background:rgba(74,222,128,0.1);
+      border-bottom:1px solid rgba(74,222,128,0.2);
+      padding:12px 20px;text-align:center;
+      font-size:0.82rem;color:#4ade80;font-weight:600;
+    }
+  </style>
+</head>
+<body>
+
+<div class="standalone-banner" id="standaloneBanner">
+  ✅ SiteMitra is installed on your device!
+</div>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-logo">SITE<span>MITRA</span></div>
+  <div class="topbar-badge">by Jenix</div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="app-icon">SM</div>
+  <h1>Install <span>SiteMitra</span></h1>
+  <p class="hero-hindi">आपका Field Work Partner 📱</p>
+  <p class="hero-sub">Free · No Play Store needed · Works like a native app</p>
+</div>
+
+<!-- INSTALL BUTTON -->
+<div class="install-zone">
+  <button id="btn-install" onclick="doInstall()">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v14M6 10l6 6 6-6M3 20h18"/></svg>
+    Install on this Device
+  </button>
+  <div class="installed-msg" id="installedMsg">
+    ✅ SiteMitra is already installed on this device!
+  </div>
+  <div class="share-row">
+    <button class="btn-share" onclick="doShare()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+      Share Link
+    </button>
+    <button class="btn-share" onclick="copyLink()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      <span id="copyTxt">Copy Link</span>
+    </button>
+  </div>
+</div>
+
+<!-- HOW TO INSTALL -->
+<div class="divider"><span>How to install</span></div>
+<div class="how">
+  <div class="how-tabs">
+    <button class="tab-btn active" onclick="switchTab('android',this)">🤖 Android</button>
+    <button class="tab-btn" onclick="switchTab('ios',this)">🍎 iPhone / iPad</button>
+  </div>
+
+  <div class="tab-panel active" id="tab-android">
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-text">
+          <strong>Open in Chrome</strong>
+          Make sure you're using Chrome browser on Android.
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-text">
+          <strong>Tap "Install on this Device"</strong>
+          Press the orange install button above — Chrome will show a native install popup.
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-text">
+          <strong>Tap "Install" in the popup</strong>
+          The SiteMitra icon will appear on your home screen instantly.
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-text">
+          <strong>Open from Home Screen</strong>
+          Tap the SiteMitra icon — it opens full-screen, just like a native app.
+        </div>
+      </div>
+    </div>
+    <div class="tip" style="margin-top:14px">
+      <strong>Didn't see a popup?</strong> Tap Chrome's ⋮ menu → <strong>"Add to Home screen"</strong>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="tab-ios">
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-text">
+          <strong>Open in Safari</strong>
+          Must use Safari on iPhone/iPad. Chrome on iOS cannot install PWAs.
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-text">
+          <strong>Tap the Share button</strong>
+          Tap the <strong>□↑</strong> share icon at the bottom of Safari.
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-text">
+          <strong>Scroll down → "Add to Home Screen"</strong>
+          Tap <strong>"Add to Home Screen"</strong> from the share sheet.
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-text">
+          <strong>Tap "Add"</strong>
+          SiteMitra appears on your home screen — opens full-screen like a native app.
+        </div>
+      </div>
+    </div>
+    <div class="tip" style="margin-top:14px">
+      <strong>iOS 16.4+:</strong> Push notifications are supported on iPhone too.
+    </div>
+  </div>
+</div>
+
+<!-- WHAT YOU GET -->
+<div class="features">
+  <h2>What you <span>get</span></h2>
+  <div class="feat-grid">
+    <div class="feat">
+      <span class="ico">📍</span>
+      <strong>Location Search</strong>
+      <span>Find techs near any site — GPS powered</span>
+    </div>
+    <div class="feat">
+      <span class="ico">🔔</span>
+      <strong>Push Alerts</strong>
+      <span>Instant notifications for new work</span>
+    </div>
+    <div class="feat">
+      <span class="ico">📋</span>
+      <strong>Live Tracking</strong>
+      <span>On the way → Reached → Done</span>
+    </div>
+    <div class="feat">
+      <span class="ico">⭐</span>
+      <strong>Trust Score</strong>
+      <span>Build reputation from real work history</span>
+    </div>
+    <div class="feat">
+      <span class="ico">🆓</span>
+      <strong>100% Free</strong>
+      <span>No subscription, no commission</span>
+    </div>
+    <div class="feat">
+      <span class="ico">📵</span>
+      <strong>Works Offline</strong>
+      <span>Core features work without internet</span>
+    </div>
+  </div>
+</div>
+
+<!-- ROLE SELECTION -->
+<div class="roles">
+  <h2>I am a <span>…</span></h2>
+  <div class="role-cards">
+    <div class="role-card" id="role-tech" onclick="selectRole('technician')">
+      <span class="role-emoji">🔧</span>
+      <div class="role-info">
+        <strong>Field Technician</strong>
+        <span>CCTV installer, IP Camera specialist, security system engineer — find nearby site work</span>
+      </div>
+      <div class="role-check"></div>
+    </div>
+    <div class="role-card" id="role-si" onclick="selectRole('si')">
+      <span class="role-emoji">🏢</span>
+      <div class="role-info">
+        <strong>System Integrator / SI</strong>
+        <span>Contractor, dealer, or service company — find reliable field technicians fast</span>
+      </div>
+      <div class="role-check"></div>
+    </div>
+  </div>
+</div>
+
+<!-- QR CODE (for sharing) -->
+<div class="qr-section" id="qrSection">
+  <h2>Share with your team</h2>
+  <p>Scan to open on any device</p>
+  <div class="qr-box">
+    <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=https://sitemitra.iotsoft.in/join&color=0f1117&bgcolor=ffffff&margin=2"
+         width="160" height="160" alt="QR Code for SiteMitra" loading="lazy"/>
+  </div>
+  <p class="qr-url">🔗 <strong>sitemitra.iotsoft.in/join</strong></p>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <p>
+    <strong style="color:#fff">SITEMITRA</strong> by <strong style="color:var(--or)">Jenix</strong><br>
+    Free forever · No ads · No commission<br><br>
+    <a href="/">Home</a> &nbsp;·&nbsp;
+    <a href="/#terms">Terms</a> &nbsp;·&nbsp;
+    <a href="/#privacy">Privacy</a> &nbsp;·&nbsp;
+    <a href="mailto:support@iotsoft.in">Support</a>
+  </p>
+</footer>
+
+<script>
+  // ── PWA Install Prompt ──
+  let deferredPrompt = null;
+
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    deferredPrompt = e;
+    const btn = document.getElementById('btn-install');
+    btn.disabled = false;
+    btn.style.opacity = '1';
+  });
+
+  window.addEventListener('appinstalled', () => {
+    deferredPrompt = null;
+    document.getElementById('btn-install').style.display = 'none';
+    document.getElementById('installedMsg').style.display = 'block';
+  });
+
+  async function doInstall() {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      if (outcome === 'accepted') {
+        document.getElementById('btn-install').style.display = 'none';
+        document.getElementById('installedMsg').style.display = 'block';
+      }
+    } else {
+      // No prompt available — show manual instructions
+      document.querySelector('.how').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  // ── Standalone detection ──
+  function isStandalone() {
+    return window.matchMedia('(display-mode: standalone)').matches ||
+           window.navigator.standalone === true;
+  }
+
+  if (isStandalone()) {
+    document.getElementById('standaloneBanner').style.display = 'block';
+    document.getElementById('btn-install').style.display = 'none';
+    document.getElementById('installedMsg').style.display = 'block';
+  }
+
+  // ── Tab switching ──
+  function switchTab(tab, el) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('tab-' + tab).classList.add('active');
+  }
+
+  // ── Role selection ──
+  function selectRole(role) {
+    document.getElementById('role-tech').classList.remove('selected');
+    document.getElementById('role-si').classList.remove('selected');
+    document.getElementById('role-' + (role === 'technician' ? 'tech' : 'si')).classList.add('selected');
+    // Could store in localStorage for when app is opened
+    localStorage.setItem('sitemitra_role', role);
+  }
+
+  // Restore saved role
+  const savedRole = localStorage.getItem('sitemitra_role');
+  if (savedRole) selectRole(savedRole);
+
+  // Auto-detect OS and switch tab
+  if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+    document.querySelectorAll('.tab-btn')[1].click();
+  }
+
+  // ── URL param role pre-selection ──
+  const params = new URLSearchParams(location.search);
+  if (params.get('role')) selectRole(params.get('role'));
+
+  // ── Share ──
+  async function doShare() {
+    const url = 'https://sitemitra.iotsoft.in/join';
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'SiteMitra – Field Work App',
+          text: 'Install SiteMitra – free app for CCTV field technicians & System Integrators in India.',
+          url,
+        });
+      } catch (_) {}
+    } else {
+      copyLink();
+    }
+  }
+
+  function copyLink() {
+    navigator.clipboard.writeText('https://sitemitra.iotsoft.in/join').then(() => {
+      const el = document.getElementById('copyTxt');
+      el.textContent = 'Copied!';
+      setTimeout(() => el.textContent = 'Copy Link', 2000);
+    }).catch(() => {
+      // fallback
+      const ta = document.createElement('textarea');
+      ta.value = 'https://sitemitra.iotsoft.in/join';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      document.getElementById('copyTxt').textContent = 'Copied!';
+      setTimeout(() => document.getElementById('copyTxt').textContent = 'Copy Link', 2000);
+    });
+  }
+
+  // ── Service Worker ──
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    });
+  }
+</script>
+</body>
+</html>

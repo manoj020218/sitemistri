@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Site Work Network — Client Site के पास Available CCTV Technician तुरंत खोजें</title>
+  <meta name="description" content="System Integrators और CCTV technicians के लिए free Site Work network. Client location डालें, nearby available technician देखें, call/WhatsApp करें, Site Work assign करें।" />
+  <meta name="keywords" content="CCTV technician app, nearby technician finder, system integrator app, CCTV installation technician, site work app, IP camera technician, DVR NVR service, field technician network" />
+  <meta property="og:title" content="Site Work Network — Find Nearby Available CCTV Technicians" />
+  <meta property="og:description" content="Free app for SIs and CCTV technicians to find nearby available technicians near client site and manage Site Work records." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="/og-image.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --ink: #0f0e0c;
+      --paper: #f5f0e8;
+      --saffron: #e8630a;
+      --saffron-light: #ff8c3a;
+      --saffron-dim: #fde8d4;
+      --green: #1a7a4a;
+      --green-light: #22a060;
+      --green-dim: #d4f0e2;
+      --sky: #1a5fa8;
+      --sky-dim: #daeaf8;
+      --card: #ffffff;
+      --border: #e0d8cc;
+      --muted: #6b6258;
+      --badge-tech: #fff3e8;
+      --badge-si: #e8f4ff;
+      --radius: 16px;
+      --radius-sm: 8px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Noto Sans Devanagari', 'Baloo 2', sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      font-size: 16px;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* LANGUAGE TOGGLE */
+    .lang-bar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: var(--ink);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 20px;
+    }
+    .lang-bar .brand {
+      font-family: 'Space Mono', monospace;
+      color: var(--saffron-light);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+    .lang-toggle {
+      display: flex;
+      gap: 4px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 20px;
+      padding: 3px;
+    }
+    .lang-btn {
+      border: none;
+      background: transparent;
+      color: rgba(255,255,255,0.6);
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.05em;
+    }
+    .lang-btn.active {
+      background: var(--saffron);
+      color: #fff;
+    }
+
+    /* HERO */
+    .hero {
+      margin-top: 44px;
+      padding: 60px 20px 50px;
+      background: var(--ink);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -80px; right: -80px;
+      width: 320px; height: 320px;
+      background: var(--saffron);
+      border-radius: 50%;
+      opacity: 0.08;
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      bottom: -60px; left: -40px;
+      width: 200px; height: 200px;
+      background: var(--green);
+      border-radius: 50%;
+      opacity: 0.12;
+    }
+    .hero-inner {
+      position: relative; z-index: 2;
+      max-width: 640px; margin: 0 auto;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(232,99,10,0.2);
+      border: 1px solid rgba(232,99,10,0.4);
+      border-radius: 20px;
+      padding: 5px 14px;
+      margin-bottom: 24px;
+    }
+    .hero-badge span {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--saffron-light);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-family: 'Space Mono', monospace;
+    }
+    .hero-badge .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--green-light);
+      animation: pulse 1.8s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.7); }
+    }
+    .hero h1 {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: clamp(26px, 6vw, 42px);
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.25;
+      margin-bottom: 20px;
+    }
+    .hero h1 .accent { color: var(--saffron-light); }
+    .hero-sub {
+      font-size: clamp(14px, 3.5vw, 17px);
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 36px;
+      line-height: 1.7;
+    }
+    .hero-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--saffron);
+      color: #fff;
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+      padding: 15px 32px;
+      border-radius: 50px;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.18s, box-shadow 0.18s;
+      box-shadow: 0 4px 24px rgba(232,99,10,0.5);
+    }
+    .hero-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(232,99,10,0.6); }
+    .hero-cta svg { width: 20px; height: 20px; }
+    .hero-note {
+      margin-top: 14px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.4);
+      font-family: 'Space Mono', monospace;
+    }
+
+    /* TRUST STRIP */
+    .trust-strip {
+      background: var(--saffron);
+      padding: 14px 20px;
+      display: flex;
+      gap: 20px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      align-items: center;
+    }
+    .trust-strip::-webkit-scrollbar { display: none; }
+    .trust-item {
+      display: flex; align-items: center; gap: 7px;
+      white-space: nowrap;
+      font-size: 13px; font-weight: 700;
+      color: #fff;
+      font-family: 'Baloo 2', sans-serif;
+    }
+    .trust-item svg { width: 16px; height: 16px; opacity: 0.9; flex-shrink: 0; }
+    .trust-sep { color: rgba(255,255,255,0.4); font-size: 18px; flex-shrink: 0; }
+
+    /* SECTION COMMON */
+    section { padding: 56px 20px; }
+    .section-inner { max-width: 640px; margin: 0 auto; }
+    .section-eyebrow {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--saffron);
+      margin-bottom: 10px;
+    }
+    .section-title {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: clamp(22px, 5vw, 32px);
+      font-weight: 800;
+      line-height: 1.25;
+      margin-bottom: 14px;
+    }
+    .section-desc {
+      font-size: 15px;
+      color: var(--muted);
+      line-height: 1.75;
+    }
+
+    /* PROBLEM */
+    .problem-section {
+      background: #fff;
+    }
+    .problem-card {
+      background: var(--ink);
+      border-radius: var(--radius);
+      padding: 28px 24px;
+      margin-top: 28px;
+      position: relative;
+      overflow: hidden;
+    }
+    .problem-card::before {
+      content: '?';
+      position: absolute;
+      right: 20px; top: 10px;
+      font-size: 120px;
+      font-weight: 900;
+      color: rgba(255,255,255,0.04);
+      font-family: 'Baloo 2', sans-serif;
+      line-height: 1;
+    }
+    .problem-quote {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: clamp(16px, 4vw, 22px);
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.4;
+      margin-bottom: 20px;
+    }
+    .problem-quote em { color: var(--saffron-light); font-style: normal; }
+    .problem-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .problem-list li {
+      display: flex; align-items: flex-start; gap: 10px;
+      font-size: 14px; color: rgba(255,255,255,0.75);
+      line-height: 1.5;
+    }
+    .problem-list li .icon {
+      width: 22px; height: 22px;
+      background: rgba(232,99,10,0.2);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; margin-top: 1px;
+      font-size: 11px;
+    }
+
+    /* DUAL BENEFIT */
+    .dual-section { background: var(--paper); }
+    .dual-tabs {
+      display: flex; gap: 8px; margin-bottom: 28px;
+    }
+    .dual-tab {
+      flex: 1;
+      padding: 12px 8px;
+      border-radius: var(--radius-sm);
+      border: 2px solid var(--border);
+      background: #fff;
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+      color: var(--muted);
+    }
+    .dual-tab.active-si {
+      background: var(--sky-dim);
+      border-color: var(--sky);
+      color: var(--sky);
+    }
+    .dual-tab.active-tech {
+      background: var(--saffron-dim);
+      border-color: var(--saffron);
+      color: var(--saffron);
+    }
+    .benefit-panel { display: none; }
+    .benefit-panel.visible { display: block; }
+    .benefit-list { display: flex; flex-direction: column; gap: 14px; }
+    .benefit-item {
+      display: flex; align-items: flex-start; gap: 14px;
+      background: #fff;
+      border-radius: var(--radius-sm);
+      padding: 16px 18px;
+      border: 1px solid var(--border);
+    }
+    .benefit-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0;
+    }
+    .si-icon { background: var(--sky-dim); }
+    .tech-icon { background: var(--saffron-dim); }
+    .benefit-text .bhead {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 15px; font-weight: 700;
+      margin-bottom: 3px;
+    }
+    .benefit-text .bdesc {
+      font-size: 13px; color: var(--muted); line-height: 1.5;
+    }
+
+    /* HOW IT WORKS */
+    .how-section { background: #fff; }
+    .steps { display: flex; flex-direction: column; gap: 0; margin-top: 28px; position: relative; }
+    .steps::before {
+      content: '';
+      position: absolute;
+      left: 19px; top: 24px; bottom: 24px;
+      width: 2px;
+      background: repeating-linear-gradient(to bottom, var(--border) 0, var(--border) 6px, transparent 6px, transparent 12px);
+    }
+    .step {
+      display: flex; gap: 16px; align-items: flex-start;
+      padding: 18px 0;
+      position: relative;
+    }
+    .step-num {
+      width: 40px; height: 40px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Space Mono', monospace;
+      font-size: 13px; font-weight: 700;
+      flex-shrink: 0; position: relative; z-index: 1;
+      border: 2px solid;
+    }
+    .step-num.s { background: var(--sky-dim); border-color: var(--sky); color: var(--sky); }
+    .step-num.t { background: var(--saffron-dim); border-color: var(--saffron); color: var(--saffron); }
+    .step-num.b { background: var(--green-dim); border-color: var(--green); color: var(--green); }
+    .step-body .shead {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 15px; font-weight: 700; margin-bottom: 3px;
+    }
+    .step-body .sdesc { font-size: 13px; color: var(--muted); line-height: 1.5; }
+    .step-who {
+      display: inline-block;
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      font-family: 'Space Mono', monospace;
+      padding: 2px 8px; border-radius: 10px;
+      margin-bottom: 6px;
+    }
+    .step-who.si { background: var(--sky-dim); color: var(--sky); }
+    .step-who.tech { background: var(--saffron-dim); color: var(--saffron); }
+    .step-who.both { background: var(--green-dim); color: var(--green); }
+
+    /* TRUST SECTION */
+    .trust-section { background: var(--paper); }
+    .trust-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 28px; }
+    .trust-card {
+      background: #fff;
+      border-radius: var(--radius-sm);
+      padding: 20px 16px;
+      border: 1px solid var(--border);
+    }
+    .trust-card .tnum {
+      font-family: 'Space Mono', monospace;
+      font-size: 28px; font-weight: 700;
+      color: var(--saffron);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .trust-card .tlabel {
+      font-size: 13px; color: var(--muted); line-height: 1.4;
+    }
+    .trust-disclaimer {
+      background: #fff3e8;
+      border: 1px solid #f5c89a;
+      border-radius: var(--radius-sm);
+      padding: 16px 18px;
+      margin-top: 20px;
+      font-size: 13px;
+      color: #7a4a1a;
+      line-height: 1.6;
+    }
+    .trust-disclaimer strong { font-weight: 700; }
+
+    /* FREE SECTION */
+    .free-section { background: var(--ink); }
+    .free-section .section-eyebrow { color: var(--green-light); }
+    .free-section .section-title { color: #fff; }
+    .free-section .section-desc { color: rgba(255,255,255,0.6); }
+    .free-cards { display: flex; flex-direction: column; gap: 14px; margin-top: 28px; }
+    .free-card {
+      border-radius: var(--radius-sm);
+      padding: 18px 20px;
+      display: flex; align-items: center; gap: 14px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .free-card .ficon {
+      font-size: 28px; flex-shrink: 0;
+    }
+    .free-card .ftext .fhead {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 15px; font-weight: 700;
+      color: #fff; margin-bottom: 3px;
+    }
+    .free-card .ftext .fdesc {
+      font-size: 13px; color: rgba(255,255,255,0.55);
+    }
+    .free-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--green);
+      color: #fff;
+      font-family: 'Space Mono', monospace;
+      font-size: 13px; font-weight: 700;
+      padding: 8px 18px; border-radius: 20px;
+      margin-top: 24px;
+      letter-spacing: 0.06em;
+    }
+
+    /* FINAL CTA */
+    .final-cta {
+      background: var(--saffron);
+      padding: 56px 20px;
+      text-align: center;
+    }
+    .final-cta h2 {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: clamp(22px, 5.5vw, 34px);
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.3;
+      margin-bottom: 12px;
+    }
+    .final-cta p {
+      color: rgba(255,255,255,0.8);
+      font-size: 15px;
+      margin-bottom: 32px;
+      line-height: 1.6;
+    }
+    .cta-btn {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: #fff;
+      color: var(--saffron);
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 17px; font-weight: 800;
+      padding: 16px 36px; border-radius: 50px;
+      text-decoration: none; border: none; cursor: pointer;
+      transition: transform 0.18s, box-shadow 0.18s;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+    }
+    .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+
+    /* FOOTER */
+    footer {
+      background: var(--ink);
+      padding: 28px 20px;
+      text-align: center;
+    }
+    .footer-links {
+      display: flex; gap: 20px; justify-content: center;
+      flex-wrap: wrap; margin-bottom: 14px;
+    }
+    .footer-links a {
+      color: rgba(255,255,255,0.5);
+      font-size: 13px; text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--saffron-light); }
+    .footer-note {
+      font-size: 12px; color: rgba(255,255,255,0.25);
+      font-family: 'Space Mono', monospace;
+    }
+
+    /* TECHNICIAN CARD DEMO */
+    .demo-card {
+      background: #fff;
+      border-radius: var(--radius);
+      padding: 18px;
+      border: 1px solid var(--border);
+      margin-top: 28px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+    }
+    .demo-card-header {
+      display: flex; align-items: flex-start; gap: 14px; margin-bottom: 14px;
+    }
+    .demo-avatar {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--saffron), #c45a08);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 18px; font-weight: 800; color: #fff;
+      flex-shrink: 0;
+    }
+    .demo-info .dname {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 16px; font-weight: 700;
+    }
+    .demo-info .drole {
+      font-size: 13px; color: var(--muted);
+    }
+    .avail-pill {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: var(--green-dim);
+      color: var(--green);
+      font-size: 12px; font-weight: 700;
+      padding: 3px 10px; border-radius: 12px;
+      font-family: 'Space Mono', monospace;
+    }
+    .avail-pill .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--green-light);
+      animation: pulse 1.8s ease-in-out infinite;
+    }
+    .demo-stats {
+      display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 14px;
+    }
+    .demo-stat {
+      font-size: 12px; color: var(--muted);
+      display: flex; align-items: center; gap: 4px;
+    }
+    .demo-stat strong { color: var(--ink); font-weight: 700; }
+    .demo-actions {
+      display: flex; gap: 8px;
+    }
+    .demo-btn {
+      flex: 1; padding: 9px 6px;
+      border-radius: var(--radius-sm);
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 13px; font-weight: 700;
+      border: none; cursor: default;
+      text-align: center;
+    }
+    .demo-btn.call { background: var(--green-dim); color: var(--green); }
+    .demo-btn.wa { background: #e6f9f0; color: #1a7a3a; }
+    .demo-btn.assign { background: var(--saffron); color: #fff; }
+
+    /* ANIMATIONS */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .fade-up.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 400px) {
+      .trust-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="lang-bar">
+  <span class="brand">SITE WORK NETWORK</span>
+  <div class="lang-toggle">
+    <button class="lang-btn active" onclick="setLang('hi')" id="btn-hi">हिंदी</button>
+    <button class="lang-btn" onclick="setLang('en')" id="btn-en">EN</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-badge">
+      <span class="dot"></span>
+      <span data-hi="बिल्कुल मुफ्त • No Naukri Portal" data-en="Completely Free • Not a Job Portal">बिल्कुल मुफ्त • No Naukri Portal</span>
+    </div>
+    <h1>
+      <span data-hi="Client Site के पास <br/><span class='accent'>Available Technician</span><br/>तुरंत खोजें" data-en="Find <span class='accent'>Available Technicians</span><br/>Near Your Client Site"><span>Client Site के पास <br/><span class="accent">Available Technician</span><br/>तुरंत खोजें</span></span>
+    </h1>
+    <p class="hero-sub" data-hi="System Integrators और CCTV Field Technicians के लिए free Site Work network. Client location डालें, nearby available technician देखें, call करें, Site Work assign करें।" data-en="Free Site Work network for System Integrators and CCTV field technicians. Enter client location, find nearby available technicians, call, and assign Site Work.">
+      System Integrators और CCTV Field Technicians के लिए free Site Work network. Client location डालें, nearby available technician देखें, call करें, Site Work assign करें।
+    </p>
+    <a href="#" class="hero-cta">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+      <span data-hi="App लें — मुफ्त" data-en="Get App — Free">App लें — मुफ्त</span>
+    </a>
+    <p class="hero-note" data-hi="Android PWA • कोई Payment नहीं • कोई Verification नहीं" data-en="Android PWA • No Payment • No Manual Verification">Android PWA • कोई Payment नहीं • कोई Verification नहीं</p>
+  </div>
+</section>
+
+<!-- TRUST STRIP -->
+<div class="trust-strip">
+  <div class="trust-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+    <span data-hi="बिल्कुल मुफ्त" data-en="Completely Free">बिल्कुल मुफ्त</span>
+  </div>
+  <span class="trust-sep">·</span>
+  <div class="trust-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    <span data-hi="Dual Role — SI + Technician" data-en="Dual Role — SI + Technician">Dual Role — SI + Technician</span>
+  </div>
+  <span class="trust-sep">·</span>
+  <div class="trust-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+    <span data-hi="Client Site Based Search" data-en="Client Site Based Search">Client Site Based Search</span>
+  </div>
+  <span class="trust-sep">·</span>
+  <div class="trust-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.45 2 2 0 0 1 3.58 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.56a16 16 0 0 0 6.29 6.29l1.62-1.62a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+    <span data-hi="Call/WhatsApp पहले, Assign बाद में" data-en="Call First, Assign Later">Call/WhatsApp पहले, Assign बाद में</span>
+  </div>
+  <span class="trust-sep">·</span>
+  <div class="trust-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    <span data-hi="Hindi + English UI" data-en="Hindi + English UI">Hindi + English UI</span>
+  </div>
+</div>
+
+<!-- PROBLEM SECTION -->
+<section class="problem-section">
+  <div class="section-inner fade-up">
+    <p class="section-eyebrow" data-hi="असली समस्या" data-en="THE REAL PROBLEM">असली समस्या</p>
+    <h2 class="section-title" data-hi="Phone number तो है, लेकिन…" data-en="You have their number, but…">Phone number तो है, लेकिन…</h2>
+    <p class="section-desc" data-hi="SI के पास technicians के numbers तो होते हैं। असली समस्या यह है कि कौन सा technician अभी client site के पास है, available है, और काम कर सकता है?" data-en="SIs already have technician numbers. The real problem is knowing who is near the client site RIGHT NOW, available, and can serve fastest.">
+      SI के पास technicians के numbers तो होते हैं। असली समस्या यह है कि कौन सा technician अभी client site के पास है, available है, और काम कर सकता है?
+    </p>
+    <div class="problem-card">
+      <p class="problem-quote" data-hi="अभी client site के पास कौन technician <em>available</em> है और <em>जल्दी</em> जा सकता है?" data-en="Which technician is <em>available</em> near my client site <em>right now</em> and can go fast?">
+        अभी client site के पास कौन technician <em>available</em> है और <em>जल्दी</em> जा सकता है?
+      </p>
+      <ul class="problem-list">
+        <li>
+          <span class="icon">📍</span>
+          <span data-hi="Technician client site के कितना पास है?" data-en="How close is the technician to the client site?">Technician client site के कितना पास है?</span>
+        </li>
+        <li>
+          <span class="icon">🟢</span>
+          <span data-hi="क्या वो अभी available है?" data-en="Is he available right now?">क्या वो अभी available है?</span>
+        </li>
+        <li>
+          <span class="icon">🔧</span>
+          <span data-hi="क्या उसके पास सही skill है?" data-en="Does he have the right skill?">क्या उसके पास सही skill है?</span>
+        </li>
+        <li>
+          <span class="icon">✅</span>
+          <span data-hi="पहले कितने Site Work complete किए हैं?" data-en="How many Site Works has he completed before?">पहले कितने Site Work complete किए हैं?</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- DEMO CARD -->
+    <div class="demo-card">
+      <div style="font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:12px;" data-hi="Search Result — Client Site से 3km के अंदर" data-en="Search Result — Within 3km of client site">Search Result — Client Site से 3km के अंदर</div>
+      <div class="demo-card-header">
+        <div class="demo-avatar">R</div>
+        <div class="demo-info" style="flex:1">
+          <div class="dname">Ramesh Kumar</div>
+          <div class="drole">CCTV / IP Camera / DVR-NVR Technician</div>
+        </div>
+        <div class="avail-pill"><span class="dot"></span><span data-hi="Available" data-en="Available">Available</span></div>
+      </div>
+      <div class="demo-stats">
+        <div class="demo-stat">📍 <strong>2.4 km</strong> <span data-hi="दूर" data-en="away">दूर</span></div>
+        <div class="demo-stat">🕐 <span data-hi="Location: 4 min पहले" data-en="Location: 4 min ago">Location: 4 min पहले</span></div>
+        <div class="demo-stat">✅ <strong>18</strong> <span data-hi="काम पूरे" data-en="works done">काम पूरे</span></div>
+        <div class="demo-stat">🤝 <strong>5</strong> <span data-hi="SIs के साथ" data-en="SIs">SIs के साथ</span></div>
+      </div>
+      <div class="demo-actions">
+        <div class="demo-btn call">📞 <span data-hi="Call" data-en="Call">Call</span></div>
+        <div class="demo-btn wa">💬 <span data-hi="WhatsApp" data-en="WhatsApp">WhatsApp</span></div>
+        <div class="demo-btn assign" data-hi="Site Work दें" data-en="Assign Work">Site Work दें</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DUAL BENEFITS -->
+<section class="dual-section">
+  <div class="section-inner fade-up">
+    <p class="section-eyebrow" data-hi="किसके लिए?" data-en="WHO IS IT FOR?">किसके लिए?</p>
+    <h2 class="section-title" data-hi="दोनों के लिए फायदा" data-en="Benefits for Both">दोनों के लिए फायदा</h2>
+
+    <div class="dual-tabs">
+      <button class="dual-tab active-si" onclick="showBenefit('si')" id="tab-si">
+        🏢 <span data-hi="System Integrator / SI" data-en="System Integrator / SI">System Integrator / SI</span>
+      </button>
+      <button class="dual-tab" onclick="showBenefit('tech')" id="tab-tech">
+        🔧 <span data-hi="Field Technician" data-en="Field Technician">Field Technician</span>
+      </button>
+    </div>
+
+    <!-- SI Benefits -->
+    <div class="benefit-panel visible" id="panel-si">
+      <div class="benefit-list">
+        <div class="benefit-item">
+          <div class="benefit-icon si-icon">📍</div>
+          <div class="benefit-text">
+            <div class="bhead" data-hi="Client Site के पास खोजें" data-en="Search Near Client Site">Client Site के पास खोजें</div>
+            <div class="bdesc" data-hi="SI office के पास नहीं — client की location डालें और nearest available technician देखें।" data-en="Not near SI office — enter client location and see nearest available technician.">SI office के पास नहीं — client की location डालें और nearest available technician देखें।</div>
+          </div>
+        </div>
+        <div class="benefit-item">
+          <div class="benefit-icon si-icon">🟢</div>
+          <div class="benefit-text">
+            <div class="bhead" data-hi="Availability और Location Update देखें" data-en="See Availability & Location Update">Availability और Location Update देखें</div>
+            <div class="bdesc" data-hi="हर technician की availability status और last location update time देखें।" data-en="See every technician's availability status and last location update time.">हर technician की availability status और last location update time देखें।</div>
+          </div>
+        </div>
+        <div class="benefit-item">
+          <div class="benefit-icon si-icon">📞</div>
+          <div class="benefit-text">
+            <div class="bhead" data-hi="पहले Call/WhatsApp, फिर Assign" data-en="Call First, Then Assign">पहले Call/WhatsApp, फिर Assign</div>
+            <div class="bdesc" data-hi="Work scope, charges और time पहले discuss करें, तब Site Work assign करें।" data-en="Discuss work scope, charges and time first, then assign Site Work.">Work scope, charges और time पहले discuss करें, तब Site Work assign करें।</div>
+          </div>
+        </div>
+        <div class="benefit-item">
+          <div class="benefit-icon si-icon">📊</div>
+          <div class="benefit-text">
+            <div class="bhead" data-hi="Status Track करें" data-en="Track Status">Status Track करें</div>
+            <div class="bdesc" data-hi="Accepted, Reached, Completed, Closed — हर step का timestamp।" data-en="Accepted, Reached, Completed, Closed — timestamp at every step.">Accepted, Reached, Completed, Closed — हर step का timestamp।</div>
+          </div>
+        </div>
+        <div class="benefit-item">
+          <div class="benefit-icon si-icon">👥</div>
+          <div class="benefit-text">
+            <div class="bhead" data-hi="अपना Technician Pool बनाएं" data-en="Build Your Technician Pool">अपना Technician Pool बनाएं</div>
+            <div class="bdesc" data-hi="Trusted technicians को save करें। भविष्य में direct call/assign करें।" data-en="Save trusted technicians. Call or assign directly in future.">Trusted technicians को save करें। भविष्य में direct call/assign करें।</div>
+          </div>
+        </div>
+        <div class="benefit-item">
+          <div class="benefit-icon si-icon">💬</div>
+          <div class="benefit-text">
+            <div class="bhead" data-hi="Client को Technician Contact Forward करें" data-en="Forward Technician Contact to Client">Client को Technician Contact Forward करें</div>
+            <div class="bdesc" data-hi="One tap से client को WhatsApp पर technician की details भेजें।" data-en="Send technician details to client on WhatsApp with one tap.">One tap से client को WhatsApp पर technician की details भेजें।</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tech Benefits -->
+    <div class="benefit-panel" id="panel-tech">
+      <div class="benefit-list">
+        <div class="benefit-item">
+          <div class="benefit-icon tech-icon">📝</div>
+          <div class="benefit-text">
+            <div class="bhead" data-hi="Minimum Typing से Strong Profile" data-en="Strong Profile with Minimum Typing">Minimum Typing से Strong Profile</div>
+            <div class="bdesc" data-hi="Buttons और checkboxes से skills, tools, experience चुनें। Hindi/English profile auto-generate होगी।" data-en="Select skills, tools, experience with buttons. Hindi/English profile auto-generated.">Buttons और checkboxes से skills, tools, experience चुनें। Hindi/English profile auto-generate होगी।</div>
+          </div>
+        </div>
+        <div class="benefit-item">
+          <div class="benefit-icon tech-icon">🟢</div>
+          <div class="benefit-text">
+            <div class="bhead" data-hi="Available ON करो, Search में दिखो" data-en="Turn Available ON, Appear in Search">Available ON करो, Search में दिखो</div>
+            <div class="bdesc" data-hi="जब available हो, status ON करो। Nearby SI को तुम्हारी profile search में दिखेगी।" data-en="When available, turn status ON. Nearby SIs will see your profile in search.">जब available हो, status ON करो। Nearby SI को तुम्हारी profile search में दिखेगी।</div>
+          </div>
+        </div>
+        <div class="benefit-item">
+          <div class="benefit-icon tech-icon">🔗</div>
+          <div class="benefit-text">
+            <div class="bhead" data-hi="Profile Link Share करो" data-en="Share Profile Link">Profile Link Share करो</div>
+            <div class="bdesc" data-hi="WhatsApp, Social पर professional profile share करो। नए SIs तक पहुंचो।" data-en="Share professional profile on WhatsApp and social. Reach new SIs.">WhatsApp, Social पर professional profile share करो। नए SIs तक पहुंचो।</div>
+          </div>
+        </div>
+        <div class="benefit-item">
+          <div class="benefit-icon tech-icon">⭐</div>
+          <div class="benefit-text">
+            <div class="bhead" data-hi="काम से Trust बनाओ" data-en="Build Trust Through Work">काम से Trust बनाओ</div>
+            <div class="bdesc" data-hi="Completed Site Work, unique SIs, ratings — असली काम से trust score बढ़ेगा।" data-en="Completed Site Work, unique SIs, ratings — trust score grows from real work.">Completed Site Work, unique SIs, ratings — असली काम से trust score बढ़ेगा।</div>
+          </div>
+        </div>
+        <div class="benefit-item">
+          <div class="benefit-icon tech-icon">📱</div>
+          <div class="benefit-text">
+            <div class="bhead" data-hi="Hindi-First Simple App" data-en="Hindi-First Simple App">Hindi-First Simple App</div>
+            <div class="bdesc" data-hi="Low-cost Android phone पर भी smooth चलेगा। Minimum data use।" data-en="Runs smooth on low-cost Android phones. Minimum data use.">Low-cost Android phone पर भी smooth चलेगा। Minimum data use।</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-section">
+  <div class="section-inner fade-up">
+    <p class="section-eyebrow" data-hi="यह कैसे काम करता है?" data-en="HOW IT WORKS">यह कैसे काम करता है?</p>
+    <h2 class="section-title" data-hi="Simple 6-Step Flow" data-en="Simple 6-Step Flow">Simple 6-Step Flow</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num s">01</div>
+        <div class="step-body">
+          <div class="step-who si">SI</div>
+          <div class="shead" data-hi="Client Site Location डालें" data-en="Enter Client Site Location">Client Site Location डालें</div>
+          <div class="sdesc" data-hi="Map पर pin drop करें या current location use करें। Work type और skill select करें।" data-en="Drop pin on map or use current location. Select work type and required skill.">Map पर pin drop करें या current location use करें। Work type और skill select करें।</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num s">02</div>
+        <div class="step-body">
+          <div class="step-who si">SI</div>
+          <div class="shead" data-hi="Nearby Technicians देखें" data-en="View Nearby Technicians">Nearby Technicians देखें</div>
+          <div class="sdesc" data-hi="Available, nearby, और skill-matched technicians की list देखें। Distance, last update, completed work सब दिखेगा।" data-en="See list of available, nearby, skill-matched technicians with distance, last update, and completed work count.">Available, nearby, और skill-matched technicians की list देखें। Distance, last update, completed work सब दिखेगा।</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num b">03</div>
+        <div class="step-body">
+          <div class="step-who both">SI + Technician</div>
+          <div class="shead" data-hi="Call/WhatsApp करें, Discuss करें" data-en="Call/WhatsApp, Discuss">Call/WhatsApp करें, Discuss करें</div>
+          <div class="sdesc" data-hi="Work scope, time, और charges directly बात करके तय करें। App में कोई payment नहीं।" data-en="Directly agree on scope, time, and charges. No payment in the app.">Work scope, time, और charges directly बात करके तय करें। App में कोई payment नहीं।</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num s">04</div>
+        <div class="step-body">
+          <div class="step-who si">SI</div>
+          <div class="shead" data-hi="Site Work Assign करें" data-en="Assign Site Work">Site Work Assign करें</div>
+          <div class="sdesc" data-hi="Site details, work type, और agreed time के साथ Site Work create करें।" data-en="Create Site Work with site details, work type, and agreed time.">Site details, work type, और agreed time के साथ Site Work create करें।</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num t">05</div>
+        <div class="step-body">
+          <div class="step-who tech">Technician</div>
+          <div class="shead" data-hi="Accept करें, जाएं, काम करें" data-en="Accept, Go, Complete Work">Accept करें, जाएं, काम करें</div>
+          <div class="sdesc" data-hi="Accept करो, site पर जाओ, काम करो, 1 proof photo upload करो।" data-en="Accept, travel to site, complete work, upload 1 proof photo.">Accept करो, site पर जाओ, काम करो, 1 proof photo upload करो।</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num s">06</div>
+        <div class="step-body">
+          <div class="step-who si">SI</div>
+          <div class="shead" data-hi="Close करें, Trust बढ़े" data-en="Close, Trust Grows">Close करें, Trust बढ़े</div>
+          <div class="sdesc" data-hi="SI photo review करके Site Work close करे। Proof photo delete हो जाए। Trust score update हो।" data-en="SI reviews photo and closes Site Work. Proof photo gets deleted. Trust score updates.">SI photo review करके Site Work close करे। Proof photo delete हो जाए। Trust score update हो।</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TRUST SECTION -->
+<section class="trust-section">
+  <div class="section-inner fade-up">
+    <p class="section-eyebrow" data-hi="भरोसा और सुरक्षा" data-en="TRUST & SAFETY">भरोसा और सुरक्षा</p>
+    <h2 class="section-title" data-hi="असली काम से Trust" data-en="Trust from Real Work">असली काम से Trust</h2>
+    <p class="section-desc" data-hi="हम manually verify, guarantee, या supervise नहीं करते। Trust real completed Site Work से बनता है।" data-en="We don't manually verify, guarantee, or supervise. Trust is built from real completed Site Work.">
+      हम manually verify, guarantee, या supervise नहीं करते। Trust real completed Site Work से बनता है।
+    </p>
+    <div class="trust-grid">
+      <div class="trust-card">
+        <div class="tnum">✅</div>
+        <div class="tlabel" data-hi="Completed Site Work count" data-en="Completed Site Work count">Completed Site Work count</div>
+      </div>
+      <div class="trust-card">
+        <div class="tnum">🤝</div>
+        <div class="tlabel" data-hi="Unique SIs की संख्या" data-en="Number of unique SIs">Unique SIs की संख्या</div>
+      </div>
+      <div class="trust-card">
+        <div class="tnum">⭐</div>
+        <div class="tlabel" data-hi="SI rating और feedback" data-en="SI rating and feedback">SI rating और feedback</div>
+      </div>
+      <div class="trust-card">
+        <div class="tnum">🕐</div>
+        <div class="tlabel" data-hi="On-time पहुंचने का record" data-en="On-time arrival record">On-time पहुंचने का record</div>
+      </div>
+    </div>
+    <div class="trust-disclaimer">
+      <strong data-hi="महत्वपूर्ण:" data-en="Important:">महत्वपूर्ण:</strong>
+      <span data-hi=" यह app एक free discovery और Site Work record platform है। हम किसी भी technician, SI, या user को employ, verify, control, supervise, certify, या guarantee नहीं करते। सभी payments, work scope, quality, warranty, और disputes directly SI और technician के बीच हैं। Platform किसी भी payment या dispute के लिए liable नहीं है।" data-en=" This app is a free discovery and Site Work record platform. We do not employ, verify, control, supervise, certify, or guarantee any technician, SI, or user. All payments, work scope, quality, warranty, and disputes are directly between SI and technician. Platform is not liable for any payment or dispute.">
+        यह app एक free discovery और Site Work record platform है। हम किसी भी technician, SI, या user को employ, verify, control, supervise, certify, या guarantee नहीं करते। सभी payments, work scope, quality, warranty, और disputes directly SI और technician के बीच हैं।
+      </span>
+    </div>
+  </div>
+</section>
+
+<!-- FREE SECTION -->
+<section class="free-section">
+  <div class="section-inner fade-up">
+    <p class="section-eyebrow" data-hi="शुरू करना आसान है" data-en="EASY TO START">शुरू करना आसान है</p>
+    <h2 class="section-title" data-hi="मुफ्त। Simple। कोई झंझट नहीं।" data-en="Free. Simple. No Hassle.">मुफ्त। Simple। कोई झंझट नहीं।</h2>
+    <div class="free-cards">
+      <div class="free-card">
+        <span class="ficon">🔐</span>
+        <div class="ftext">
+          <div class="fhead" data-hi="Google से One-Click Login" data-en="One-Click Google Login">Google से One-Click Login</div>
+          <div class="fdesc" data-hi="No OTP, No password. बस Google account से login करें।" data-en="No OTP, no password. Just sign in with Google.">No OTP, No password. बस Google account से login करें।</div>
+        </div>
+      </div>
+      <div class="free-card">
+        <span class="ficon">👤</span>
+        <div class="ftext">
+          <div class="fhead" data-hi="2 Minute में Profile Ready" data-en="Profile Ready in 2 Minutes">2 Minute में Profile Ready</div>
+          <div class="fdesc" data-hi="Buttons चुनो — skills, tools, availability. Hindi/English profile auto-generate।" data-en="Select buttons — skills, tools, availability. Hindi/English profile auto-generated.">Buttons चुनो — skills, tools, availability. Hindi/English profile auto-generate।</div>
+        </div>
+      </div>
+      <div class="free-card">
+        <span class="ficon">📱</span>
+        <div class="ftext">
+          <div class="fhead" data-hi="Android Phone पर Install करें" data-en="Install on Android Phone">Android Phone पर Install करें</div>
+          <div class="fdesc" data-hi="PWA — browser से directly install। Low data, low storage। कोई Play Store नहीं।" data-en="PWA — install directly from browser. Low data, low storage. No Play Store needed.">PWA — browser से directly install। Low data, low storage। कोई Play Store नहीं।</div>
+        </div>
+      </div>
+      <div class="free-card">
+        <span class="ficon">🚫</span>
+        <div class="ftext">
+          <div class="fhead" data-hi="कोई Payment Gateway नहीं" data-en="No Payment Gateway">कोई Payment Gateway नहीं</div>
+          <div class="fdesc" data-hi="App में कोई wallet, escrow, या payment नहीं। SI और technician directly settle करते हैं।" data-en="No wallet, escrow, or payment in app. SI and technician settle directly.">App में कोई wallet, escrow, या payment नहीं। SI और technician directly settle करते हैं।</div>
+        </div>
+      </div>
+    </div>
+    <div class="free-badge">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      <span data-hi="हमेशा मुफ्त रहेगा" data-en="Always Free">हमेशा मुफ्त रहेगा</span>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="final-cta">
+  <h2 data-hi="आज ही शुरू करें।<br/>बिल्कुल मुफ्त।" data-en="Start Today.<br/>Completely Free.">आज ही शुरू करें।<br/>बिल्कुल मुफ्त।</h2>
+  <p data-hi="Client site के पास available technician खोजें। या अपनी professional profile बनाएं और ज्यादा site work पाएं।" data-en="Find available technicians near client site. Or build your professional profile and get more site work.">
+    Client site के पास available technician खोजें। या अपनी professional profile बनाएं और ज्यादा site work पाएं।
+  </p>
+  <a href="#" class="cta-btn">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+    <span data-hi="App लें — मुफ्त" data-en="Get App — Free">App लें — मुफ्त</span>
+  </a>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-links">
+    <a href="#" data-hi="Terms & Conditions" data-en="Terms & Conditions">Terms & Conditions</a>
+    <a href="#" data-hi="Privacy Policy" data-en="Privacy Policy">Privacy Policy</a>
+    <a href="#" data-hi="हमारे बारे में" data-en="About">हमारे बारे में</a>
+    <a href="#" data-hi="संपर्क करें" data-en="Contact">संपर्क करें</a>
+  </div>
+  <p class="footer-note">© 2026 Site Work Network • Free discovery platform for field technicians</p>
+</footer>
+
+<script>
+  // Language switching
+  let currentLang = 'hi';
+
+  function setLang(lang) {
+    currentLang = lang;
+    document.getElementById('btn-hi').classList.toggle('active', lang === 'hi');
+    document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+    document.documentElement.lang = lang;
+
+    document.querySelectorAll('[data-hi]').forEach(el => {
+      const text = el.getAttribute('data-' + lang);
+      if (text) el.innerHTML = text;
+    });
+
+    // Update demo card availability pill text
+    document.querySelectorAll('.avail-pill span:last-child').forEach(el => {
+      el.textContent = lang === 'hi' ? 'Available' : 'Available';
+    });
+  }
+
+  // Benefit tabs
+  function showBenefit(role) {
+    document.getElementById('panel-si').classList.toggle('visible', role === 'si');
+    document.getElementById('panel-tech').classList.toggle('visible', role === 'tech');
+    document.getElementById('tab-si').className = 'dual-tab' + (role === 'si' ? ' active-si' : '');
+    document.getElementById('tab-tech').className = 'dual-tab' + (role === 'tech' ? ' active-tech' : '');
+  }
+
+  // Scroll fade-in
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

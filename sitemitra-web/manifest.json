@@ -1,0 +1,33 @@
+{
+  "name": "SiteMitra – Field Work Partner",
+  "short_name": "SiteMitra",
+  "description": "Connect CCTV technicians with System Integrators across India.",
+  "start_url": "/join",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f1117",
+  "theme_color": "#e8630a",
+  "categories": ["business", "productivity"],
+  "lang": "en-IN",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Find Technicians",
+      "short_name": "Find Tech",
+      "url": "/join?role=si",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Find Site Work",
+      "short_name": "Find Work",
+      "url": "/join?role=technician",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

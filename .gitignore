@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Environment files (contain credentials — never commit)
+.env
+.env.production
+.env.local
+.env.*.local
+
+# Uploads directory (user photos stored here)
+sitework/backend/uploads/
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Vite cache
+.vite/

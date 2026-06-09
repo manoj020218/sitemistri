@@ -1,0 +1,36 @@
+{
+  "name": "sitemitra-android-app",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev":   "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "android:add": "npx cap add android",
+    "android:sync": "npm run build && npx cap sync android",
+    "android:open": "npx cap open android",
+    "android:apk": "npm run build && npx cap sync android && cd android && gradlew.bat assembleDebug"
+  },
+  "dependencies": {
+    "@capgo/capacitor-social-login": "^8.1.2",
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/app": "^8.0.0",
+    "@capacitor/browser": "^8.0.0",
+    "@capacitor/core": "^8.0.0",
+    "react":               "^18.3.1",
+    "react-dom":           "^18.3.1",
+    "react-router-dom":    "^6.23.1",
+    "axios":               "^1.7.2",
+    "firebase":            "^10.12.1",
+    "leaflet":             "^1.9.4",
+    "react-leaflet":       "^4.2.1"
+  },
+  "devDependencies": {
+    "@capacitor/cli":       "^8.0.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "vite":                 "^5.3.1"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild", "protobufjs"]
+  }
+}

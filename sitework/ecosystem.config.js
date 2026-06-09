@@ -1,0 +1,20 @@
+module.exports = {
+  apps: [{
+    name: 'sitemitra-api',
+    script: './src/server.js',
+    cwd: '/root/projects/SiteMitra/backend',
+    instances: 1,
+    exec_mode: 'fork',
+    node_args: '--max-old-space-size=512',
+    max_memory_restart: '400M',
+    min_uptime: '10s',
+    max_restarts: 5,
+    watch: false,
+    ignore_watch: ['node_modules', 'uploads'],
+    out_file:        '/root/projects/SiteMitra/logs/out.log',
+    error_file:      '/root/projects/SiteMitra/logs/error.log',
+    merge_logs:      true,
+    log_date_format: 'YYYY-MM-DD HH:mm:ss',
+    env_production: { NODE_ENV: 'production', PORT: 3100 },
+  }],
+};

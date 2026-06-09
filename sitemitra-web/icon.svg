@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#e8630a"/>
+  <rect width="512" height="512" rx="96" fill="url(#g)"/>
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ff8534"/>
+      <stop offset="100%" stop-color="#c4520a"/>
+    </linearGradient>
+  </defs>
+  <!-- S letter -->
+  <text x="256" y="200" font-family="Arial Black,Arial" font-weight="900"
+        font-size="148" text-anchor="middle" fill="white" letter-spacing="-4">SM</text>
+  <!-- tagline bar -->
+  <rect x="80" y="290" width="352" height="4" rx="2" fill="rgba(255,255,255,0.4)"/>
+  <text x="256" y="360" font-family="Arial,sans-serif" font-weight="700"
+        font-size="52" text-anchor="middle" fill="rgba(255,255,255,0.9)"
+        letter-spacing="6">SITEMITRA</text>
+  <text x="256" y="420" font-family="Arial,sans-serif" font-weight="400"
+        font-size="32" text-anchor="middle" fill="rgba(255,255,255,0.6)"
+        letter-spacing="2">by Jenix</text>
+</svg>
