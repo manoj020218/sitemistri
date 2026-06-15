@@ -6,6 +6,7 @@ const { upload }   = require('../middleware/upload.middleware');
 router.post  ('/',                       protect, ctrl.create);
 router.get   ('/',                       protect, ctrl.list);
 router.get   ('/:id',                    protect, ctrl.getOne);
+router.patch ('/:id',                    protect, ctrl.update);
 router.post  ('/:id/accept',             protect, ctrl.accept);
 router.post  ('/:id/reject',             protect, ctrl.reject);
 router.post  ('/:id/start-travel',       protect, ctrl.startTravel);

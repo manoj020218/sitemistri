@@ -17,6 +17,7 @@ const techSchema = new Schema({
     accuracy:    Number,
     updatedAt:   Date,
   },
+  pincode:          { type: String, index: true },
   permanentAddress: String,
   approxAge:        Number,
   customPhotoUrl:  String,

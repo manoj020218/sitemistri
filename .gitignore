@@ -26,5 +26,8 @@ Thumbs.db
 .vscode/
 .idea/
 
+# Claude Code local settings
+.claude/
+
 # Vite cache
 .vite/

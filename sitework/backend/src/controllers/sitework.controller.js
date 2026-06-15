@@ -31,6 +31,39 @@ const updateTrustOnClose = async (techUserId, rating) => {
 
 // ── Controllers ──
 
+exports.update = async (req, res) => {
+  try {
+    const work = await SiteWork.findById(req.params.id);
+    if (!work) return err(res, 'Not found', 404);
+    if (work.siUserId.toString() !== req.user._id.toString())
+      return err(res, 'Forbidden', 403);
+
+    const TERMINAL = ['CLOSED','CANCELLED_BY_SI','CANCELLED_BY_TECH','REJECTED','DISPUTED','OVERDUE'];
+    if (TERMINAL.includes(work.status))
+      return err(res, 'Cannot edit a closed or cancelled site work', 400);
+
+    const ALLOWED = [
+      'clientName','clientMobile','clientHouseNo','siteAddress',
+      'workType','description','preferredVisitTime','agreedVisitCharge',
+      'materialIncluded','paymentBy','paymentMode',
+    ];
+    const patch = {};
+    for (const key of ALLOWED) {
+      if (req.body[key] !== undefined) patch[key] = req.body[key];
+    }
+    if (!Object.keys(patch).length) return err(res, 'No valid fields provided', 400);
+
+    const updated = await SiteWork.findByIdAndUpdate(
+      req.params.id, { $set: patch }, { new: true, runValidators: true }
+    ).populate('siUserId', 'name mobile').populate('technicianUserId', 'name mobile');
+
+    // Best-effort: notify tech that job details changed
+    sendToUser(work.technicianUserId, 'SITE_WORK_UPDATED', { siteWorkId: work._id.toString() }).catch(() => {});
+
+    return ok(res, updated, 'Site work updated');
+  } catch (e) { return err(res, e.message, 500); }
+};
+
 exports.create = async (req, res) => {
   try {
     const si = req.user;
@@ -100,11 +133,35 @@ const techAction = (statusTo, stampKey, notifyEvent, notifyTarget = 'si') => asy
 };
 
 exports.accept      = techAction('ACCEPTED',     'acceptedAt',            'TECH_ACCEPTED');
-exports.reject      = techAction('REJECTED',     'rejectedAt',            'TECH_REJECTED');
-exports.startTravel = techAction('ON_THE_WAY',   'travelStartedAt',       'TECH_ON_THE_WAY');
-exports.reached     = techAction('REACHED',      'reachedAt',             'TECH_REACHED');
-exports.startWork   = techAction('WORK_STARTED', 'workStartedAt',         null);
-exports.complete    = techAction('COMPLETED',    'technicianCompletedAt', 'TECH_COMPLETED');
+
+exports.reject = async (req, res) => {
+  try {
+    const work = await SiteWork.findById(req.params.id);
+    if (!work) return err(res, 'Not found', 404);
+    if (work.technicianUserId.toString() !== req.user._id.toString()) return err(res, 'Forbidden', 403);
+    const update = { ...setStatus('REJECTED', 'rejectedAt') };
+    if (req.body.reason) update.rejectionReason = req.body.reason;
+    await SiteWork.findByIdAndUpdate(work._id, update);
+    await sendToUser(work.siUserId, 'TECH_REJECTED', { siteWorkId: work._id.toString() });
+    return ok(res, null, 'Status: REJECTED');
+  } catch (e) { return err(res, e.message, 500); }
+};
+exports.startTravel = techAction('ON_THE_WAY',   'travelStartedAt', 'TECH_ON_THE_WAY');
+exports.reached     = techAction('REACHED',      'reachedAt',       'TECH_REACHED');
+exports.startWork   = techAction('WORK_STARTED', 'workStartedAt',   null);
+
+exports.complete = async (req, res) => {
+  try {
+    const work = await SiteWork.findById(req.params.id);
+    if (!work) return err(res, 'Not found', 404);
+    if (work.technicianUserId.toString() !== req.user._id.toString()) return err(res, 'Forbidden', 403);
+    const update = setStatus('COMPLETED', 'technicianCompletedAt');
+    if (req.body?.technicianRemark?.trim()) update.technicianRemark = req.body.technicianRemark.trim();
+    await SiteWork.findByIdAndUpdate(work._id, update);
+    await sendToUser(work.siUserId, 'TECH_COMPLETED', { siteWorkId: work._id.toString() });
+    return ok(res, null, 'Status: COMPLETED');
+  } catch (e) { return err(res, e.message, 500); }
+};
 
 exports.uploadProof = async (req, res) => {
   try {
@@ -114,22 +171,18 @@ exports.uploadProof = async (req, res) => {
     if (work.technicianUserId.toString() !== req.user._id.toString()) return err(res, 'Forbidden', 403);
     if (work.status !== 'COMPLETED') return err(res, 'Work must be COMPLETED first');
 
-    const sharp = require('sharp');
-    const outPath = req.file.path.replace(/\.[^.]+$/, '.webp');
-    await sharp(req.file.path).resize(1200, 900, { fit: 'inside' }).webp({ quality: 75 }).toFile(outPath);
-    fs.unlinkSync(req.file.path);
-
-    const hash = crypto.createHash('sha256').update(fs.readFileSync(outPath)).digest('hex');
+    // Frontend already compresses to WebP ≤ ~300 KB — no server-side sharp needed
+    const hash = crypto.createHash('sha256').update(fs.readFileSync(req.file.path)).digest('hex');
 
     await SiteWork.findByIdAndUpdate(work._id, {
       'proof.photoUploaded':  true,
-      'proof.photoPath':      outPath,
+      'proof.photoPath':      req.file.path,
       'proof.uploadedAt':     new Date(),
       'proof.storageStatus':  'TEMP_STORED',
       'proof.sha256Hash':     hash,
     });
 
-    return ok(res, { path: outPath });
+    return ok(res, { path: req.file.path });
   } catch (e) { return err(res, e.message, 500); }
 };
 

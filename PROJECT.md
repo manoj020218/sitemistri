@@ -1,7 +1,7 @@
 # SiteMitra — Project Master Document
 
-> **Last Updated:** 2026-06-09 (Session 5)
-> **Status:** Fully deployed & running — Backend ✅ · React frontend ✅ · Marketing page ✅
+> **Last Updated:** 2026-06-11 (Session 9)
+> **Status:** Fully deployed & running — Backend ✅ · React frontend ✅ · Marketing page ✅ · GPS banner ✅ · Google Maps paste ✅ · Screen persistence ✅ · Real-time progress ✅ · Mic voice input ✅ · Proof photo (canvas WebP compress) ✅ · Completion remark (text+mic) ✅ · SI profile modal (call/WhatsApp) ✅ · History proof photo display ✅ · SI Review Screen ✅ · PENDING_ACCEPTANCE WhatsApp/SMS remind ✅ · No full-page spinner ✅ · Pull-to-refresh disabled ✅
 > **Live URL:** https://sitemitra.iotsoft.in
 > **VPS:** 154.61.69.200 (Ubuntu 24 LTS)
 > **Developer:** Jenix (contact: support@iotsoft.com)
@@ -56,7 +56,7 @@ SiteMitra is a **free, mobile-first Progressive Web App (PWA)** that connects:
 | ORM | Mongoose 8 | All read queries use `.lean()` |
 | Auth | Google OAuth 2.0 + JWT | No passwords, no OTP |
 | Push Notifications | Firebase Cloud Messaging (FCM) | Web + Android — credentials NOT yet set |
-| Image Processing | sharp (lazy-loaded) | Only on proof photo upload |
+| Image Processing | Canvas API (frontend) | WebP/JPEG compress to ≤300KB before upload; sharp removed from backend (Session 9) |
 | Scheduled Jobs | node-cron | Proof photo cleanup daily at 2AM |
 | Process Manager | PM2 | Fork mode, 400MB restart limit |
 | Web Server | Nginx | Reverse proxy + static files |
@@ -138,7 +138,9 @@ D:\IOT Device\SiteMistri\SiteMitra\
 │       ├── package.json
 │       ├── .env                        ← VITE_API_URL + VITE_GOOGLE_CLIENT_ID (set ✅)
 │       ├── vite.config.js              ← Updated (Session 4): navigateFallbackDenylist for root /
-│       ├── public/icons/
+│       ├── public/
+│       │   ├── icons/
+│       │   └── index-landing.html      ← Old-style marketing page (Session 6: moved here so Vite copies it to dist/)
 │       └── src/
 │           ├── main.jsx
 │           ├── App.jsx                 ← Router + RequireAuth + route definitions
@@ -178,7 +180,7 @@ D:\IOT Device\SiteMistri\SiteMitra\
 | IP | **154.61.69.200** ← NEVER use any other IP |
 | OS | Ubuntu 24 LTS |
 | SSH User | root |
-| SSH Password | `<stored privately — ask Manoj>` |
+| SSH Password | `Vps@SmGym#2026` |
 | Domain | sitemitra.iotsoft.in |
 | Web root | `/root/projects/SiteMitra/web/` |
 | Backend dir | `/root/projects/SiteMitra/backend/` |
@@ -186,6 +188,7 @@ D:\IOT Device\SiteMistri\SiteMitra\
 | PuTTY plink | `"C:\Program Files\PuTTY\plink.exe"` |
 | PuTTY pscp | `"C:\Program Files\PuTTY\pscp.exe"` |
 | Deploy script | `D:\IOT Device\SiteMistri\SiteMitra\deploy.bat` |
+| plink wrapper | `D:\plink_git.bat` — `plink -pw pass -batch %*`; use: `& "D:\plink_git.bat" root@154.61.69.200 "command"` |
 
 ### deploy.bat Commands
 ```
@@ -259,7 +262,7 @@ server {
         proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
         proxy_set_header   X-Forwarded-Proto $scheme;
         proxy_read_timeout 30s;
-        client_max_body_size 1m;
+        client_max_body_size 10m;   ← raised from 1m (Session 9) for proof photo uploads
     }
 
     gzip on;
@@ -345,6 +348,7 @@ Frontend reads `response.data` (Axios) → then `.data` property for the payload
 | Method | Path | Auth | Rate Limit | Description |
 |---|---|---|---|---|
 | POST | `/nearby` | Yes | 30/min | Find technicians near lat/lng |
+| POST | `/resolve-map-link` | Yes | 30/min | Resolve Google Maps short URL → lat/lng + address |
 
 **Request body:** `{ siteLocation: {lat, lng}, radiusKm, requiredSkills: [skill_ids], workType }`
 
@@ -367,7 +371,7 @@ Frontend reads `response.data` (Axios) → then `.data` property for the payload
 | POST | `/:id/start-travel` | Tech | On the way |
 | POST | `/:id/reached` | Tech | Arrived at site |
 | POST | `/:id/start-work` | Tech | Work started |
-| POST | `/:id/complete` | Tech | Mark completed (→ `COMPLETED_BY_TECH`) |
+| POST | `/:id/complete` | Tech | Mark completed (→ `COMPLETED`) |
 | POST | `/:id/proof-photo` | Tech | Upload proof photo (multer) |
 | POST | `/:id/close` | SI | Close job + optional rating |
 | POST | `/:id/cancel` | Both | Cancel job |
@@ -396,12 +400,18 @@ GET /health  →  { status: 'ok', version: '1.0.0' }
 ```
 DRAFT → PENDING_ACCEPTANCE → ACCEPTED → ON_THE_WAY → REACHED → WORK_STARTED
                                                                       ↓
-                                                              COMPLETED_BY_TECH
+                                                              COMPLETED  ← tech presses "काम पूरा किया"
+                                                              (tech uploads proof photo here)
                                                                       ↓
-                                                                   CLOSED ✓
+                                                                   CLOSED ✓  ← SI closes + rates
 
 Other terminals: CANCELLED_BY_SI, CANCELLED_BY_TECH, DISPUTED, OVERDUE
 ```
+
+> **IMPORTANT — COMPLETED vs CLOSED:**
+> - `COMPLETED` = tech finished work; stays in tech's **active-work** screen so tech can upload proof photo
+> - `CLOSED` = SI reviewed and closed; appears in tech's **history** screen
+> - `COMPLETED_BY_TECH` does NOT exist — never use this string in frontend code
 
 ### Memory Optimization
 - All read queries use `.lean()` (50% less RAM vs full Mongoose docs)
@@ -451,15 +461,16 @@ Other terminals: CANCELLED_BY_SI, CANCELLED_BY_TECH, DISPUTED, OVERDUE
 ### SiteWork
 ```js
 { siUserId, technicianUserId (ref User),
-  clientName, clientMobile, siteAddress, siteLocation (GeoJSON),
+  clientName, clientMobile, clientHouseNo, siteAddress, mapShortUrl, siteLocation (GeoJSON),
   workType, requiredSkills, description, preferredVisitTime,
   agreedVisitCharge, materialIncluded, paymentBy, paymentMode,
   status (enum — see state machine above),
   proof: { photoUploaded, photoPath, uploadedAt, storageStatus, sha256Hash },
   ratingBySI: { stars, reachedOnTime, skillMatch, workCompleted, behaviourGood, comment, ratedAt },
+  technicianRemark: String,  // ← Added Session 9 — optional note by tech when pressing Complete (text+mic)
   privateIssueByTechnician: { hasIssue, reason, comment, reportedAt },
   // Timestamps: assignedAt, acceptedAt, travelStartedAt, reachedAt,
-  //             workStartedAt, completedByTechAt, siClosedAt, cancelledAt }
+  //             workStartedAt, technicianCompletedAt, siClosedAt, cancelledAt }
 ```
 
 ### TechnicianPool
@@ -508,56 +519,105 @@ VitePWA({
 
 ---
 
-### TechDashboard.jsx ✅ FULLY WIRED (Session 3, 2026-06-08)
+### TechDashboard.jsx ✅ FULLY WIRED (Session 3–9)
 - Loads `GET /api/technician/profile` + `GET /api/technician/site-works`
+- `GET /api/technician/site-works` populates `siUserId: {name, mobile}` (Session 9)
 - Profile edit: skills (10), tools (7), experience slider, age stepper, vehicle, city, permanent address
 - Profile photo upload → `POST /api/technician/photo`
 - Availability toggle → `POST /api/technician/availability`
-- Location permission → `navigator.geolocation` → `POST /api/technician/location` (only when going Available)
-- Proof photo upload → `POST /api/site-work/:id/proof-photo`
-- Active work: next-action buttons wired (`/start-travel`, `/reached`, `/start-work`, `/complete`)
-- Active work: "Open in Google Maps" link
-- History: month-wise grouped with monthly earnings/count summary
-- History item click: slide-up detail modal (SI name, address, payment, rating, date)
-- Logout button in ProfileScreen view mode
-- Auto-generated bio (Hindi + English) displayed
+- **Auto-save location on mount** — if profile is already Available when dashboard opens, GPS saved immediately (Session 7)
+- **Location permission banner** — `navigator.permissions.query({name:'geolocation'})` tracks state; red blinking GPS banner shown if available but location not granted; click opens LocationModal with Android/iPhone instructions (Session 7)
+- Geolocation denial alert (Hindi/English) when going Available (Session 6)
+- **Screen persistence** — last active screen (`home/history/profile`) saved to `localStorage('sm_tech_screen')` and restored on refresh; session-dependent screens fall back to `home` (Session 7)
+- Active work: next-action buttons wired (`/start-travel`, `/reached`, `/start-work`, `/complete`); always reads fresh `activeWork` (not stale `selectedWork`)
+- **15-second polling** on home + active-work screens via `setInterval(loadAll, 15000)` in `useEffect([screen])`
+- **`initialLoading` pattern** — spinner only shows on first load, never on background polls; replaced with small 40×40 corner badge (fixed bottom-right) (Session 9)
+- **Status: `COMPLETED`** (real backend status) — work stays in `activeWork` after tech completes so proof photo can be uploaded; moves to `history` only after SI closes (CLOSED status)
+- `COMPLETED_BY_TECH` was a bug — does not exist in backend; all references removed
+- **Google Maps links in all 3 screens**: ActiveWorkScreen, WorkDetailScreen, HistoryDetailModal — uses `mapShortUrl` (exact pin) or falls back to address search (Session 7)
+
+#### ActiveWorkScreen (`src/pages/tech/ActiveWorkScreen.jsx`)
+- Status timeline (ACCEPTED → ON_THE_WAY → REACHED → WORK_STARTED → COMPLETED)
+- TTS "सुनें" button — `wtLabel()` resolves workType ID to label before speaking (Session 9)
+- **SI card** — shows name + mobile + Call/WhatsApp buttons; **📋 book icon** opens SI profile bottom-sheet modal with Call + WhatsApp (Session 9)
+- **Completion remark** (Session 9) — when WORK_STARTED, pressing "काम पूरा किया" opens remark card: textarea + 🎤 mic button (hi-IN, 10s timeout, interimResults); "काम पूरा करें" sends `{ technicianRemark }` to `/complete`; skip also available
+- Proof photo upload — canvas compress to WebP max 1200px → `POST /site-work/:id/proof-photo`; `onProofUploaded(workId)` callback updates parent state immediately, navigates home; server flag `proof.photoUploaded` prevents reappearance after upload
+- Cancel button → `POST /site-work/:id/cancel`
+
+#### HistoryScreen (`src/pages/tech/HistoryScreen.jsx`)
+- Month-wise grouped with monthly earnings + count summary chips
+- Card click → `HistoryDetailModal` (slide-up bottom sheet)
+- **📋 book icon** on SI name in card row AND in detail modal → `SIProfileModal` bottom sheet with Call + WhatsApp (Session 9)
+- **Detail modal fields**: SI/Contractor (with book icon), Site Address, Description, Preferred Time, Agreed Charge, Status, Date
+- **`technicianRemark`** shown in detail modal if tech left a completion note (Session 9)
+- **Proof photo** shown if `work.proof.storageStatus === 'TEMP_STORED'` and within 7 days of upload (Session 9)
+- Google Maps link if `mapShortUrl` or `siteAddress` available
+- SI rating (stars + comment) displayed if present
 
 ---
 
-### SIDashboard.jsx ✅ FULLY WIRED (Session 4, 2026-06-09)
+### SIDashboard.jsx ✅ FULLY WIRED (Session 4–7)
 
 #### Root component
 - Loads on mount: `GET /api/si/` + `GET /api/si/site-works` + `GET /api/si/technician-pool` (parallel)
+- **15-second polling** on home + my-works + work-detail screens: `refreshWorks()` → `GET /api/si/site-works` every 15s (Session 9)
+- **`selectedWork` state** — set when SI taps a work card in MyWorksScreen; passed to `SIWorkReviewScreen` (Session 9)
+- **No full-page spinner** — `loading` state no longer blanks content area; replaced with 40×40 corner badge (fixed bottom-right, z-index 50) (Session 9)
+- **`overscroll-behavior-y: none`** on body — prevents Chrome Android pull-to-refresh gesture (Session 9)
 - Passes `user`, `siProfile`, `siteWorks`, `pool` as props to all screens
+- **`searchContext` state** — captures `{siteAddr, siteCoords, mapShortUrl}` when assign is triggered from search results; passed to AssignScreen for pre-fill (Session 7)
+- **Screen persistence** — last active screen saved to `localStorage('sm_si_screen')` and restored on refresh; `"work-detail"` intentionally excluded (transient, no restore on refresh) (Session 7/9)
+- **SearchScreen always mounted (CSS display:none)** — preserves search state (results, step, address) when navigating to profile/assign; React maintains state of non-unmounted components (Session 7)
+- Valid screens: `home`, `search`, `tech-profile`, `assign`, `my-works`, `work-detail`, `pool`, `profile`
 
 #### HomeScreen
 - Shows real stats: active count, pending review count, closed count from `siteWorks`
 - Recent 3 site works with real technician names (`technicianUserId.name`)
-- Pending review alert banner (COMPLETED_BY_TECH status)
+- Pending review alert banner (COMPLETED status)
 - Profile setup prompt if no `businessName`
 - Profile photo from `siProfile.customPhotoUrl` or `user.photoUrl`
 
 #### SearchScreen (Technician Discovery)
-- "Use Current Location" → `navigator.geolocation` → Nominatim reverse geocode fills address
+- "Use Current Location" → `navigator.geolocation` + AbortController (5s) on Nominatim → fills address; fixed infinite spinner (Session 7)
+- **Google Maps short URL paste** — SI can paste `maps.app.goo.gl/...` link; auto-resolves on paste via `POST /api/discovery/resolve-map-link`; shows decoded address below input (Session 7)
 - "Search" → forward geocode via Nominatim if no GPS coords → `POST /api/discovery/nearby`
-- `normalizeTech()` helper normalizes API results (name, skills labels, vehicle emoji, exp, location age, distanceKm)
+- `normalizeTech()` helper normalizes API results (name, skills labels, vehicle emoji, exp, location age, distanceKm, **real mobile**)
 - Results displayed in `ResultsScreen` with real data
 
 #### AssignScreen
-- Submits `POST /api/site-work` with: technicianUserId, clientName, clientMobile, siteAddress, workType, description, preferredVisitTime, agreedVisitCharge, paymentMode, materialIncluded
+- **Voice mic input (MicButton)**: `onPointerDown` (no 300ms delay), `interimResults:true` (live typing), 10s hard timeout auto-stop, sonar ring animation when listening, `baseValue` prop preserves existing input, `cbRef` prevents stale closure; works on Android PWA (Session 9)
+- **Structured address form**: `clientHouseNo` (flat/house no) + `siteArea` (pre-filled from search context); small edit button to change area if needed; mandatory fields show red border (Session 7)
+- Submits `POST /api/site-work` with: technicianUserId, clientName, clientMobile, clientHouseNo, siteAddress (combined), **mapShortUrl** (from search context), siteLocation (GeoJSON), workType, description, preferredVisitTime, agreedVisitCharge, paymentMode, materialIncluded
+- `materialIncluded` sent as string enum `'YES'|'NO'|'NOT_SURE'` or `undefined` (not boolean) — fixes validation error (Session 7)
 - Success state with "View My Works" button
 
 #### MyWorksScreen
-- Filters: All / Active / Review / Closed
+- Filters: **All / Pending / Active / Review / Closed** (Session 9 added Pending tab with badge count)
+- Pending = `PENDING_ACCEPTANCE` (blue left border on card)
 - Active = `[ACCEPTED, ON_THE_WAY, REACHED, WORK_STARTED]`
-- Review = `COMPLETED_BY_TECH`
+- Review = `COMPLETED` (saffron left border on card)
 - Shows real tech names, addresses, charges, dates from API
+- **Card click → `SIWorkReviewScreen`** (work detail + close/rate form) — `setSelectedWork` prop sets selected work in SIDashboard state
+- **PENDING_ACCEPTANCE cards show WhatsApp + SMS remind buttons** inline — pre-filled message with work type, site address, charge and `https://sitemitra.iotsoft.in/tech` link; iOS vs Android SMS URL handled (`&body=` vs `?body=`) (Session 9)
+
+#### SIWorkReviewScreen ✅ NEW (Session 9)
+File: `src/pages/si/SIWorkReviewScreen.jsx`
+- Back button → `my-works`
+- Shows: technician name + mobile + Call/WhatsApp buttons, site details, status badge, tech remark (if any), proof photo (if within 7 days)
+- **PENDING_ACCEPTANCE**: blue "Remind" card with WhatsApp + SMS buttons (pre-filled message)
+- **COMPLETED**: full close/rate form — star rating (1–5, required), 4 yes/no toggles (reachedOnTime, skillMatch, workCompleted, behaviourGood), optional comment; Close button → `POST /site-work/:id/close`; on success: refreshes works + shows celebration screen
+- **Other active statuses**: shows work detail + cancel option
+- `SIDashboard` has `selectedWork` state; MyWorksScreen sets it on card click; `"work-detail"` screen case renders this component
 
 #### PoolScreen
 - Shows real pool technicians (`technicianUserId.name + mobile`)
 - Real Call/WhatsApp links using actual mobile number
 - "Assign Work" from pool sets selectedTech and navigates to AssignScreen
 - "Invite Technicians" with WhatsApp share + clipboard copy of invite link
+
+#### TechCard / TechProfileScreen
+- **Real mobile numbers** — `user.mobile` added to `discovery.service.js` `$project`, mapped in `normalizeTech()`; Call/WhatsApp buttons use real number (Session 7)
+- **Back from TechProfileScreen returns to search results** — SearchScreen kept always mounted (display:none) so React preserves all state including results (Session 7)
 
 #### SIProfileScreen ✅ NEW (Session 4)
 **Edit mode:**
@@ -576,13 +636,20 @@ VitePWA({
 #### BottomNav
 - 4 tabs: Home 🏠 · Search 🔍 · Works 📋 · **Profile 👤** (was Pool in Session 3)
 - Pool accessible from Profile screen (via "My Technician Pool" section — currently separate screen `/pool`)
-- Badge on Works tab shows `COMPLETED_BY_TECH` count
+- Badge on Works tab shows `COMPLETED` count
 
 ---
 
-### SiteWorkDetail.jsx ⚠️ STILL MOCK DATA
-- Needs wiring to `GET /api/site-work/:id`
-- Needs real status transition buttons for SI (close + rate)
+### SiteWorkDetail.jsx ✅ WIRED TO REAL API (Session 5/6)
+- Loads `GET /api/site-work/:id` on mount
+- `normalize()` maps all raw fields: siId, techId, names, mobile, addresses, charges, timestamps
+- `proofUrl()` helper extracts `uploads/filename` from full filesystem path + prepends `VITE_API_URL`
+- Perspective detection: `user._id === work.siId` → SI view, else Tech view
+- **Tech active view** (`TechActiveView`): next-action buttons wired to all 4 status endpoints:
+  - ACCEPTED → `start-travel`, ON_THE_WAY → `reached`, REACHED → `start-work`, WORK_STARTED → `complete`
+- Proof photo upload wired to `POST /api/site-work/:id/proof-photo`
+- SI actions: close + rate wired to `POST /api/site-work/:id/close`
+- Back button: `navigate(-1)`
 
 ---
 
@@ -716,6 +783,39 @@ VITE_VAPID_KEY=
 | deploy.bat failing from PowerShell | Must use `cmd.exe` or call pscp/plink directly | `deploy.bat` / Section 13 |
 | Wrong VPS IP (89.116.235.213) hallucinated | Correct IP is always **154.61.69.200** — read this file before any deploy | — |
 | `r.data` bug — api.js interceptor returns `{success,message,data}` envelope; callers using `r.token`, `r.user`, `r.results`, `r` directly got `undefined` | Fixed all call sites: `AuthContext.jsx` (loginWithGoogle + refreshUser), `TechDashboard.jsx` (loadAll + refreshProfile), `SIDashboard.jsx` (discovery + profile save + photo save + root loadAll). Rule: always use `r.data` for payload after `await api.*()` | `AuthContext.jsx`, `TechDashboard.jsx`, `SIDashboard.jsx` |
+| `COMPLETED_BY_TECH` status used in SIDashboard but SiteWork model only has `COMPLETED` — caused MyWorksScreen Review filter, badge count, and card style to always show 0 | Replaced all 4 occurrences of `COMPLETED_BY_TECH` → `COMPLETED` in SIDashboard.jsx | `SIDashboard.jsx` |
+| Discovery returning "no technician found" — all 9 technician profiles had default `currentLocation.coordinates: [0,0]` (Atlantic Ocean), 10,000+ km from India, outside any search radius | Three-part fix: (1) `discovery.service.js` — added `'currentLocation.updatedAt': { $exists: true }` to `$geoNear` query to exclude default [0,0] profiles; (2) `technician.controller.js` — fixed `if (!lat \|\| !lng)` falsy check (0 is falsy) → `if (lat == null \|\| lng == null)`; (3) `TechDashboard.jsx` — replaced silent geolocation error callback with alert in Hindi/English | `discovery.service.js`, `technician.controller.js`, `TechDashboard.jsx` |
+| Marketing page `index-landing.html` "Get App — Free" buttons had `href="#"` (both hero + final CTA) — clicked but stayed on same page | Changed both `href="#"` → `href="/onboarding"` | `dist/index-landing.html`, `public/index-landing.html` |
+| `index-landing.html` was manually placed in `dist/` — would be lost on next `pnpm run build` since Vite regenerates dist/ | Moved file to `public/index-landing.html` — Vite copies `public/` as-is to `dist/` on every build | `frontend/public/index-landing.html` |
+| **Session 7** | | |
+| Discovery returning no technicians even with phones on same network — all tech profiles had default `coordinates:[0,0]` with no `updatedAt` | Auto-save location on TechDashboard mount if profile is already Available; `$geoNear` `updatedAt.$exists:true` filter correctly excludes default profiles | `TechDashboard.jsx` |
+| **Session 8** | | |
+| Pincode search returning "sitelocation lat and long required" — Session 8 backend changes (pincode branch in discovery.controller, searchByPincode in discovery.service, pincode field in TechnicianProfile.model) were implemented but never deployed | Deployed backend via pscp + plink PM2 restart | `discovery.controller.js`, `discovery.service.js`, `TechnicianProfile.model.js` |
+| **Session 9** | | |
+| Mic button in AssignScreen: no data after speaking (interimResults off, continuous off), then touch did nothing (300ms Android delay on onClick) | Rewrote MicButton: `onPointerDown` not `onClick`, `touchAction:none`, `interimResults:true`, 10s hard timeout, sonar ring animation, `cbRef` to avoid stale closure, `baseValue` snapshot so existing input is preserved during recognition | `AssignScreen.jsx` |
+| Tech progress buttons (accept/on-way/reached/started/complete) not updating UI without page refresh | `active-work` case rendered `work={selectedWork\|\|activeWork}`; `selectedWork` is stale snapshot set once on navigation. Fixed to `work={activeWork}` (always fresh from siteWorks state). Added 15s polling on home+active-work screens | `TechDashboard.jsx` |
+| SI doesn't see tech progress updates in real time | `SIDashboard` loaded siteWorks once on mount with no refresh. Added `refreshWorks()` + `setInterval(refreshWorks, 15000)` when on home/my-works screens | `SIDashboard.jsx` |
+| Work completed by tech disappears from view — not in active-work, not in history | Two causes: (1) `activeWork` filter had `COMPLETED_BY_TECH` which doesn't exist in backend (real status is `COMPLETED`) so completed work fell out of activeWork; (2) `STATUS_STEPS`, labels, proof-photo condition, and next-action hide condition in ActiveWorkScreen all used wrong status string. Fixed all 6 occurrences across both files | `TechDashboard.jsx`, `ActiveWorkScreen.jsx` |
+| Viral WhatsApp share text for tech and SI visiting card only had basic info — no app promotion footer | Updated tech ProfileScreen WhatsApp `<a href>` and SI SIProfileScreen `navigator.share()` text to include "📲 मैं SiteMitra use करता हूँ — CCTV SI & Technician के लिए Free Platform\n👉 https://sitemitra.iotsoft.in" | `ProfileScreen.jsx`, `SIProfileScreen.jsx` |
+| TTS "सुनें" button reads `work.workType` as raw ID (`NEW_INSTALL` → "N E W underscore I N S T A L L") instead of human-readable label | Added `wtLabel(id, hi)` helper that resolves ID against `WORK_TYPES` from siConstants; now speaks "नई Installation" / "New Installation". Fixed in both ActiveWorkScreen and WorkDetailScreen | `ActiveWorkScreen.jsx`, `WorkDetailScreen.jsx` |
+| Proof photo upload always failed — phone camera photos are 3–10 MB; Multer limit was 400 KB, Nginx `client_max_body_size` was 1m | Three-layer fix: (1) Frontend canvas compression — resizes to max 1200px, exports as WebP @ 78% quality (~100–300 KB); falls back to JPEG on old iOS; (2) Multer limit raised to 10 MB; (3) Nginx `client_max_body_size` raised to 10m + reloaded | `ActiveWorkScreen.jsx`, `upload.middleware.js`, Nginx config on VPS |
+| Proof section reappeared after upload — 15s poll reset `proofDone` state | `initialLoading` pattern (never sets loading=true again); `onProofUploaded(workId)` callback sets `proof.photoUploaded=true` in parent state immediately; `work.proof?.photoUploaded` server flag drives visibility | `TechDashboard.jsx`, `ActiveWorkScreen.jsx` |
+| Old service worker running old `loadAll()` with `setLoading(true)` — white flash every 15 seconds | `controllerchange` listener in `main.jsx` forces `window.location.reload()` when new SW activates | `main.jsx` |
+| `could not load the sharp module due to linux` error on proof photo upload | Removed `sharp` from `uploadProof` controller — frontend already sends compressed WebP; backend only needs hash + save path | `sitework.controller.js` |
+| Tech has no GPS banner — hard to know if location permission is granted | `navigator.permissions.query({name:'geolocation'})` with `onchange` listener; red blinking GPS banner in HomeScreen when Available but not granted; LocationModal with OS-specific instructions | `TechDashboard.jsx` |
+| SI "Use Current Location" spinner never stops | Nominatim `fetch` had no timeout; added AbortController (5s) + `{timeout:15000}` on `getCurrentPosition` | `SIDashboard.jsx` |
+| Google Maps short URL coordinate extraction gave wrong location ("devi nagar" instead of correct place) | `extractCoords` checked `@lat,lng` (map view center) before `!3d/!4d` (place pin); reordered to check `!3d/!4d` FIRST — place pin is always more precise than map center | `discovery.controller.js` |
+| `maps.app.goo.gl` short URL resolves to URL with `data=!3d/!4d` encoding (not `@lat,lng`) — original regex missed this | Added `!3d/!4d` regex pattern (second check, now first) in `extractCoords` | `discovery.controller.js` |
+| `materialIncluded: true` validation error — model expects `'YES'|'NO'|'NOT_SURE'` string, code sent boolean | Fixed to `materialIncluded: materialIncl || undefined` (string or omitted) | `SIDashboard.jsx` |
+| Call/WhatsApp buttons on tech card showed dummy `9876543210` | `discovery.service.js` `$project` didn't include `user.mobile`; added to projection and `normalizeTech()` mapping | `discovery.service.js`, `SIDashboard.jsx` |
+| Back from TechProfileScreen went to search form (lost results) | SearchScreen kept always mounted with `display:none` — React preserves component state of non-unmounted components | `SIDashboard.jsx` |
+| Screen lost on page refresh for both SI and Tech dashboards | `localStorage` save/restore for screen key; only "safe" screens (no transient state) are restored | `SIDashboard.jsx`, `TechDashboard.jsx` |
+| Assign button always disabled — `canSubmit` always false | `ResultsScreen` didn't receive `setSearchContext`/`siteCoords`/`mapShortUrl` as props; `setSearchContext?.()` was always no-op → `searchContext` stayed null → `fullAddress=""` → `canSubmit=false` | `SIDashboard.jsx` |
+| **Session 9 (continued)** | | |
+| MyWorksScreen COMPLETED card click navigated to `"work-detail"` screen but SIDashboard had no case for it — fell through to SIHomeScreen | Added `selectedWork` state + `setSelectedWork` prop to MyWorksScreen; added `"work-detail"` screen case rendering new `SIWorkReviewScreen`; `si.routes.js` `GET /site-works` now populates `technicianUserId: {name, mobile}` | `SIDashboard.jsx`, `MyWorksScreen.jsx`, `SIWorkReviewScreen.jsx`, `si.routes.js` |
+| Tech's PWA closed → SI assigns work → stays at PENDING_ACCEPTANCE indefinitely with no way to notify | Added WhatsApp + SMS remind buttons on PENDING_ACCEPTANCE cards in MyWorksScreen AND SIWorkReviewScreen; message pre-filled with work type, address, charge, and `/tech` link; iOS/Android SMS URL difference handled | `MyWorksScreen.jsx`, `SIWorkReviewScreen.jsx` |
+| Full-page white spinner on every hard refresh / page load — `initialLoading` spinner covered entire screen; SIDashboard `{loading ? <Spinner/> : ...}` blanked entire content area | Removed both full-page spinners; replaced with 40×40 fixed corner badge (bottom-right, above bottom nav, z-index 50); screens render immediately with empty/null state while data loads | `TechDashboard.jsx`, `SIDashboard.jsx` |
+| Pull-to-refresh on Chrome Android (and force-refresh swipe) triggers full page reload → spinner covers screen | Added `overscroll-behavior-y: none` to `html, body` in SharedUI.jsx Fonts + SIDashboard inline styles; this CSS property disables the browser's native pull-to-refresh gesture in PWA mode | `SharedUI.jsx`, `SIDashboard.jsx` |
 
 ---
 
@@ -741,6 +841,10 @@ VITE_VAPID_KEY=
 - [x] MongoDB auth URI set
 - [x] SIProfile model: added `businessAddress` + `customPhotoUrl` fields (Session 4)
 - [x] SI routes: added `PUT /`, `POST /photo`, `GET /site-works`, `GET /technician-pool` (Session 4)
+- [x] SiteWork model: added `clientHouseNo` + `mapShortUrl` fields (Session 7)
+- [x] Discovery: added `POST /resolve-map-link` endpoint with redirect-following + `!3d/!4d` extraction (Session 7)
+- [x] Discovery service: added `user.mobile` to `$project` (Session 7)
+- [x] `extractCoords`: `!3d/!4d` checked before `@lat,lng` for accurate place pin (Session 7)
 - [ ] Firebase credentials in `.env` (push notifications)
 - [ ] End-to-end backend smoke test (login → profile → assign work → complete → close)
 
@@ -775,8 +879,44 @@ VITE_VAPID_KEY=
   - [x] SIProfileScreen (edit mode + view mode + visiting card share + logout) ← NEW Session 4
 - [x] Service worker `navigateFallbackDenylist` fix (Session 4)
 - [x] **r.data bug fixed** — AuthContext.jsx, TechDashboard.jsx, SIDashboard.jsx all fixed (Session 5)
-- [x] Frontend built and deployed (Session 5)
-- [ ] **SiteWorkDetail.jsx** — wire to real API (`GET /api/site-work/:id` + close/rate)
+- [x] **COMPLETED_BY_TECH → COMPLETED** status name fixed in SIDashboard.jsx (Session 5)
+- [x] Frontend built and deployed (Session 5, 6)
+- [x] **SiteWorkDetail.jsx** — wired to real API, all status transitions, proof photo, SI close+rate (Session 5/6)
+- [x] **Discovery "no technician found" fix** — 3-part fix: `$geoNear` filter + falsy check + geoloc alert (Session 6)
+- [x] **Marketing page buttons fixed** — both "Get App — Free" `href="#"` → `href="/onboarding"` (Session 6)
+- [x] **index-landing.html moved to `public/`** — persists across builds (Session 6)
+- [x] **Auto-save location on TechDashboard mount** — saves GPS immediately if already Available (Session 7)
+- [x] **GPS permission banner** — red blinking indicator + LocationModal when location not granted (Session 7)
+- [x] **SI "Use Current Location" infinite spinner fixed** — AbortController on Nominatim + timeout on getCurrentPosition (Session 7)
+- [x] **Google Maps short URL paste** — SI can paste maps.app.goo.gl link to set site coordinates (Session 7)
+- [x] **`!3d/!4d` coordinate fix** — checked before `@lat,lng` for accurate place pin coordinates (Session 7)
+- [x] **Structured AssignScreen address form** — clientHouseNo + prefilled siteArea + edit button + mandatory field red borders (Session 7)
+- [x] **mapShortUrl stored in SiteWork** — passed from SI search → assign → DB → tech dashboard Maps link (Session 7)
+- [x] **`materialIncluded` validation fix** — string enum instead of boolean (Session 7)
+- [x] **Real mobile numbers in TechCard/TechProfileScreen** — `user.mobile` in discovery projection + normalizeTech (Session 7)
+- [x] **SearchScreen state preserved** — CSS display:none keeps results when navigating to tech-profile/assign (Session 7)
+- [x] **Screen persistence on refresh** — both SI and Tech dashboards restore last screen from localStorage (Session 7)
+- [x] **Google Maps links in TechDashboard** — ActiveWorkScreen, WorkDetailScreen, HistoryDetailModal (Session 7)
+- [x] **Assign button fix** — pass setSearchContext+siteCoords+mapShortUrl props to ResultsScreen (Session 7)
+- [x] **Pincode search deployed** — Session 8 backend (pincode in discovery controller/service + TechnicianProfile.model pincode field) deployed to VPS (Session 8/9)
+- [x] **Viral WhatsApp share text** — tech ProfileScreen and SI SIProfileScreen both now include app promo footer with URL (Session 9)
+- [x] **Mic voice input in AssignScreen** — MicButton rewritten: onPointerDown, interimResults, 10s timeout, sonar animation, baseValue snapshot, cbRef (Session 9)
+- [x] **Real-time progress updates** — tech progress buttons update instantly via fresh `activeWork` from state; 15s polling on home+active-work+my-works screens (Session 9)
+- [x] **COMPLETED_BY_TECH → COMPLETED** — all 6 occurrences fixed in TechDashboard.jsx + ActiveWorkScreen.jsx; completed work now stays in activeWork for proof upload and correctly moves to history after SI closes (Session 9)
+- [x] **TTS workType label fix** — `wtLabel()` helper resolves raw ID (e.g. `NEW_INSTALL`) to proper label ("नई Installation") before speech synthesis; fixed in ActiveWorkScreen + WorkDetailScreen (Session 9)
+- [x] **Proof photo upload fix** — canvas compress to WebP max 1200px before upload (~100–300 KB); Multer limit 400KB → 10MB; Nginx `client_max_body_size` 1m → 10m (Session 9)
+- [x] **No proof section reappear after upload** — `initialLoading` pattern + `onProofUploaded` callback + `work.proof?.photoUploaded` server flag (Session 9)
+- [x] **sharp removed from backend** — frontend sends WebP; backend saves hash + path directly (Session 9)
+- [x] **SW cache update forced** — `controllerchange` listener in `main.jsx` forces page reload on new SW (Session 9)
+- [x] **`technicianRemark` field** — optional text+mic input before completion; stored in SiteWork; shown in HistoryDetailModal (Session 9)
+- [x] **SI profile modal (📋 book icon)** — in ActiveWorkScreen SI card + HistoryDetailModal SI row; shows name, mobile, Call & WhatsApp buttons (Session 9)
+- [x] **History proof photo display** — shown in HistoryDetailModal if `storageStatus === 'TEMP_STORED'` and within 7 days (Session 9)
+- [x] **`getMySiteWorks` populates `siUserId.mobile`** — technician.controller.js `populate('siUserId','name mobile')` — enables SI contact from tech dashboard (Session 9)
+- [x] **SI Review Screen** — new `SIWorkReviewScreen.jsx`; clicking COMPLETED work in MyWorksScreen opens work detail + star rating + 4 yes/no toggles + optional comment + Close button → `POST /site-work/:id/close`; `si.routes.js` GET /site-works now populates `technicianUserId: {name, mobile}` (Session 9)
+- [x] **PENDING_ACCEPTANCE WhatsApp/SMS remind** — inline buttons on MyWorksScreen cards + SIWorkReviewScreen; pre-filled message with work details + `/tech` link so tech opens PWA directly (Session 9)
+- [x] **MyWorksScreen Pending filter** — new "Pending" tab with badge count; PENDING_ACCEPTANCE cards have blue left border (Session 9)
+- [x] **No full-page spinner** — removed `if (initialLoading) return <spinner>` from TechDashboard + SIDashboard; replaced with small 40×40 corner badge (fixed bottom-right, z-index 50); screens render immediately (Session 9)
+- [x] **Pull-to-refresh disabled** — `overscroll-behavior-y: none` on `html, body` in SharedUI.jsx + SIDashboard inline styles; prevents Chrome Android PTR gesture in PWA (Session 9)
 - [ ] Push notifications (`useFCM` hook + Firebase config in `.env`)
 - [ ] Public profile pages (`/tech/:slug`, `/si/:slug`) — use public.routes.js
 
@@ -805,8 +945,8 @@ npm run build
 # 2. Upload dist/ to VPS
 & "C:\Program Files\PuTTY\pscp.exe" -pw "<VPS_PASSWORD>" -r "D:\IOT Device\SiteMistri\SiteMitra\sitework\frontend\dist\*" "root@154.61.69.200:/root/projects/SiteMitra/web/"
 
-# 3. Re-upload marketing page (build may have overwritten index-landing.html)
-& "C:\Program Files\PuTTY\pscp.exe" -pw "<VPS_PASSWORD>" "D:\IOT Device\SiteMistri\SiteMitra\sitemitra-web\index.html" "root@154.61.69.200:/root/projects/SiteMitra/web/index-landing.html"
+# 3. index-landing.html is now in public/ and auto-copied to dist/ by Vite — no separate re-upload needed
+#    (It was moved to public/ in Session 6 so it persists across builds)
 ```
 
 ### Deploy backend (after code changes)

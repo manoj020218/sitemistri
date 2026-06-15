@@ -1,32 +1,23 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import api from '../services/api';
 
-// ─── DESIGN TOKENS ────────────────────────────────────────────────
 const T = {
-  ink: "#0f0e0c",
-  paper: "#f5f0e8",
-  saffron: "#e8630a",
-  saffronLight: "#ff8c3a",
-  saffronDim: "#fde8d4",
-  green: "#1a7a4a",
-  greenLight: "#22a060",
-  greenDim: "#d4f0e2",
-  sky: "#1a5fa8",
-  skyDim: "#daeaf8",
-  border: "#e0d8cc",
-  muted: "#6b6258",
-  white: "#ffffff",
-  error: "#c0392b",
-  errorDim: "#fdecea",
-  warn: "#b8860b",
-  warnDim: "#fff8e1",
-  purple: "#6b3fa0",
-  purpleDim: "#ede5f8",
+  ink: "#0f0e0c", paper: "#f5f0e8", saffron: "#e8630a",
+  saffronLight: "#ff8c3a", saffronDim: "#fde8d4",
+  green: "#1a7a4a", greenLight: "#22a060", greenDim: "#d4f0e2",
+  sky: "#1a5fa8", skyDim: "#daeaf8",
+  border: "#e0d8cc", muted: "#6b6258", white: "#ffffff",
+  error: "#c0392b", errorDim: "#fdecea",
+  warn: "#b8860b", warnDim: "#fff8e1",
+  purple: "#6b3fa0", purpleDim: "#ede5f8",
 };
 
 const font = {
   display: "'Baloo 2', sans-serif",
-  body: "'Noto Sans Devanagari', sans-serif",
-  mono: "'Space Mono', monospace",
+  body:    "'Noto Sans Devanagari', sans-serif",
+  mono:    "'Space Mono', monospace",
 };
 
 const Fonts = () => (
@@ -47,156 +38,83 @@ const Fonts = () => (
     .fade-up-1 { animation: fadeUp  .35s .05s ease both; }
     .fade-up-2 { animation: fadeUp  .35s .10s ease both; }
     .fade-up-3 { animation: fadeUp  .35s .15s ease both; }
-    .fade-up-4 { animation: fadeUp  .35s .20s ease both; }
-    .fade-up-5 { animation: fadeUp  .35s .25s ease both; }
-    .slide-up  { animation: slideUp .32s ease both; }
     .pop-in    { animation: popIn   .4s  ease both; }
   `}</style>
 );
 
-// ─── MOCK DATA — 4 DIFFERENT WORK STATES ──────────────────────────
-const WORK_STATES = {
-  // SI view: technician accepted, en-route
-  ACCEPTED: {
-    id: "sw_001",
-    perspective: "SI",
-    siName: "Suresh Sharma",
-    siBiz: "Rajasthan Security Systems",
-    techName: "Ramesh Kumar",
-    techMobile: "9876543210",
-    techCity: "Vaishali Nagar",
-    techCompletedWork: 18,
-    techAvgRating: 4.6,
-    workType: "IP Camera Configuration",
-    siteClientName: "Sharma Medical Store",
-    clientMobile: "9898989898",
-    siteAddress: "C-12, Tonk Road, Near Durgapura Metro, Jaipur",
-    description: "4 IP cameras need to be configured on NVR. Client has basic setup done, need technician to configure remote view and motion alerts.",
-    preferredTime: "Today, 2:00 PM",
-    agreedCharge: 1200,
-    materialIncluded: "NO",
-    paymentBy: "Client",
-    paymentMode: "Cash",
-    status: "ACCEPTED",
-    timestamps: {
-      createdAt:  "28 May, 10:30 AM",
-      assignedAt: "28 May, 10:35 AM",
-      acceptedAt: "28 May, 10:40 AM",
-    },
-  },
-
-  // SI view: technician marked work complete, needs review & close
-  COMPLETED: {
-    id: "sw_002",
-    perspective: "SI",
-    siName: "Suresh Sharma",
-    siBiz: "Rajasthan Security Systems",
-    techName: "Ramesh Kumar",
-    techMobile: "9876543210",
-    techCity: "Vaishali Nagar",
-    techCompletedWork: 18,
-    techAvgRating: 4.6,
-    workType: "DVR/NVR Setup",
-    siteClientName: "Green Valley Apartments",
-    clientMobile: "9911223344",
-    siteAddress: "Block B, Green Valley, Malviya Nagar, Jaipur",
-    description: "DVR not recording. Checked all channels, replaced HDD, configured recording schedule. All 8 cameras now recording.",
-    preferredTime: "Today, 11:00 AM",
-    agreedCharge: 800,
-    materialIncluded: "YES",
-    paymentBy: "SI",
-    paymentMode: "UPI",
-    status: "COMPLETED",
-    proofPhotoUrl: "proof_placeholder",
-    timestamps: {
-      createdAt:           "28 May, 08:00 AM",
-      assignedAt:          "28 May, 08:05 AM",
-      acceptedAt:          "28 May, 08:10 AM",
-      travelStartedAt:     "28 May, 10:45 AM",
-      reachedAt:           "28 May, 11:05 AM",
-      workStartedAt:       "28 May, 11:10 AM",
-      technicianCompletedAt: "28 May, 12:40 PM",
-    },
-  },
-
-  // Closed work with rating
-  CLOSED: {
-    id: "sw_003",
-    perspective: "SI",
-    siName: "Suresh Sharma",
-    siBiz: "Rajasthan Security Systems",
-    techName: "Deepak Meena",
-    techMobile: "9765432109",
-    techCity: "Mansarovar",
-    techCompletedWork: 12,
-    techAvgRating: 4.4,
-    workType: "CCTV Installation",
-    siteClientName: "Sunrise School",
-    clientMobile: "9955667788",
-    siteAddress: "Plot 45, Sector 7, Mansarovar, Jaipur",
-    description: "Fresh installation of 6 cameras — 4 outdoor, 2 indoor. DVR setup and remote view configured.",
-    preferredTime: "26 May, 10:00 AM",
-    agreedCharge: 2500,
-    materialIncluded: "NO",
-    paymentBy: "Client",
-    paymentMode: "Cash",
-    status: "CLOSED",
-    ratingGiven: { stars: 5, reachedOnTime: true, skillMatch: true, workCompleted: true, behaviourGood: true, comment: "Excellent work. Very professional." },
-    timestamps: {
-      createdAt:             "26 May, 09:00 AM",
-      assignedAt:            "26 May, 09:05 AM",
-      acceptedAt:            "26 May, 09:10 AM",
-      travelStartedAt:       "26 May, 09:50 AM",
-      reachedAt:             "26 May, 10:05 AM",
-      workStartedAt:         "26 May, 10:10 AM",
-      technicianCompletedAt: "26 May, 01:30 PM",
-      siClosedAt:            "26 May, 02:00 PM",
-    },
-  },
-
-  // Technician view: incoming work request
-  TECH_PENDING: {
-    id: "sw_004",
-    perspective: "TECH",
-    siName: "TechVision Systems",
-    siCity: "Jaipur",
-    techName: "Ramesh Kumar",
-    techMobile: "9876543210",
-    workType: "Camera Angle Adjustment",
-    siteClientName: "City Mall",
-    siteAddress: "Ground Floor, City Mall, MI Road, Jaipur",
-    description: "4 cameras in parking area need angle adjustment. Client complains blind spots at entry/exit gates.",
-    preferredTime: "Today, 4:00 PM",
-    agreedCharge: 400,
-    materialIncluded: "NO",
-    paymentBy: "SI",
-    paymentMode: "Cash",
-    status: "PENDING_ACCEPTANCE",
-    distanceKm: 3.2,
-    timestamps: { assignedAt: "28 May, 1:00 PM" },
-  },
+// ── Helpers ──────────────────────────────────────────────────────────
+const fmtDate = (iso) => {
+  if (!iso) return null;
+  return new Date(iso).toLocaleString('en-IN', {
+    day: 'numeric', month: 'short',
+    hour: '2-digit', minute: '2-digit', hour12: true,
+  });
 };
 
-// ─── STATUS CONFIG ─────────────────────────────────────────────────
+const proofUrl = (photoPath) => {
+  if (!photoPath) return null;
+  const base = import.meta.env.VITE_API_URL || '';
+  const clean = photoPath.replace(/^\//, '');
+  // photoPath is a full filesystem path — extract from uploads/ onwards
+  const idx = clean.indexOf('uploads/');
+  const rel = idx !== -1 ? clean.slice(idx) : clean;
+  return `${base}/${rel}`;
+};
+
+const normalize = (raw) => ({
+  id:             raw._id,
+  siId:           raw.siUserId?._id?.toString() || raw.siUserId?.toString(),
+  techId:         raw.technicianUserId?._id?.toString() || raw.technicianUserId?.toString(),
+  siName:         raw.siUserId?.name    || '—',
+  techName:       raw.technicianUserId?.name   || '—',
+  techMobile:     raw.technicianUserId?.mobile || '',
+  siteClientName: raw.clientName,
+  clientMobile:   raw.clientMobile,
+  siteAddress:    raw.siteAddress,
+  workType:       raw.workType,
+  description:    raw.description,
+  preferredTime:  raw.preferredVisitTime,
+  agreedCharge:   raw.agreedVisitCharge,
+  materialIncluded: raw.materialIncluded,
+  paymentBy:      raw.paymentBy,
+  paymentMode:    raw.paymentMode,
+  status:         raw.status,
+  proofUploaded:  raw.proof?.photoUploaded,
+  proofPhotoUrl:  proofUrl(raw.proof?.photoPath),
+  ratingGiven:    raw.ratingBySI?.stars ? raw.ratingBySI : null,
+  timestamps: {
+    createdAt:             fmtDate(raw.createdAt),
+    assignedAt:            fmtDate(raw.timestamps?.assignedAt),
+    acceptedAt:            fmtDate(raw.timestamps?.acceptedAt),
+    travelStartedAt:       fmtDate(raw.timestamps?.travelStartedAt),
+    reachedAt:             fmtDate(raw.timestamps?.reachedAt),
+    workStartedAt:         fmtDate(raw.timestamps?.workStartedAt),
+    technicianCompletedAt: fmtDate(raw.timestamps?.technicianCompletedAt),
+    siClosedAt:            fmtDate(raw.timestamps?.siClosedAt),
+    cancelledAt:           fmtDate(raw.timestamps?.cancelledAt),
+  },
+});
+
+// ── Status config ─────────────────────────────────────────────────────
 const STATUS_CFG = {
-  PENDING_ACCEPTANCE:  { hi: "Technician का इंतजार",   en: "Pending Acceptance",   color: "warn" },
-  ACCEPTED:            { hi: "Accepted",                 en: "Accepted",              color: "sky" },
-  ON_THE_WAY:          { hi: "On The Way",               en: "On The Way",            color: "sky" },
-  REACHED:             { hi: "Site पर पहुंचा",           en: "Reached Site",          color: "sky" },
-  WORK_STARTED:        { hi: "काम शुरू",                 en: "Work Started",          color: "saffron" },
-  COMPLETED:           { hi: "Complete — Review करें",   en: "Complete — Review Now", color: "saffron" },
-  CLOSED:              { hi: "Closed ✓",                 en: "Closed ✓",             color: "green" },
-  CANCELLED:           { hi: "Cancelled",                en: "Cancelled",             color: "error" },
+  PENDING_ACCEPTANCE: { hi: "Technician का इंतजार", en: "Pending Acceptance", color: "warn" },
+  ACCEPTED:           { hi: "Accepted",              en: "Accepted",          color: "sky" },
+  ON_THE_WAY:         { hi: "On The Way",             en: "On The Way",        color: "sky" },
+  REACHED:            { hi: "Site पर पहुंचा",          en: "Reached Site",      color: "sky" },
+  WORK_STARTED:       { hi: "काम शुरू",               en: "Work Started",      color: "saffron" },
+  COMPLETED:          { hi: "Complete — Review करें", en: "Complete — Review", color: "saffron" },
+  CLOSED:             { hi: "Closed ✓",               en: "Closed ✓",          color: "green" },
+  CANCELLED_BY_SI:    { hi: "SI ने Cancel किया",      en: "Cancelled by SI",   color: "error" },
+  CANCELLED_BY_TECH:  { hi: "Tech ने Cancel किया",    en: "Cancelled by Tech", color: "error" },
 };
 
-// ─── SHARED COMPONENTS ────────────────────────────────────────────
-const Card = ({ children, style }) => (
-  <div style={{
+// ── Shared UI components ──────────────────────────────────────────────
+const Card = ({ children, style, className }) => (
+  <div className={className} style={{
     background: T.white, borderRadius: 16,
     border: `1px solid ${T.border}`,
     boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
-    overflow: "hidden",
-    ...style,
+    overflow: "hidden", ...style,
   }}>{children}</div>
 );
 
@@ -216,7 +134,6 @@ const Tag = ({ label, color = "sky" }) => {
     ink:     { bg: "#e8e4dc",    text: T.ink },
     warn:    { bg: T.warnDim,    text: T.warn },
     error:   { bg: T.errorDim,   text: T.error },
-    purple:  { bg: T.purpleDim,  text: T.purple },
   }[color] || { bg: T.skyDim, text: T.sky };
   return (
     <span style={{
@@ -237,7 +154,6 @@ const InfoRow = ({ label, value, valueStyle }) => (
   </div>
 );
 
-// Star rating component
 const StarPicker = ({ value, onChange, size = 32 }) => (
   <div style={{ display: "flex", gap: 6 }}>
     {[1,2,3,4,5].map(n => (
@@ -253,21 +169,19 @@ const StarPicker = ({ value, onChange, size = 32 }) => (
   </div>
 );
 
-// Timeline component
-const Timeline = ({ timestamps, status }) => {
+const Timeline = ({ timestamps }) => {
   const steps = [
-    { key: "createdAt",             hi: "Created",               en: "Created" },
-    { key: "assignedAt",            hi: "Assigned",              en: "Assigned" },
-    { key: "acceptedAt",            hi: "Accepted",              en: "Accepted" },
-    { key: "travelStartedAt",       hi: "On The Way",            en: "On The Way" },
-    { key: "reachedAt",             hi: "Site पर पहुंचा",        en: "Reached Site" },
-    { key: "workStartedAt",         hi: "काम शुरू",              en: "Work Started" },
-    { key: "technicianCompletedAt", hi: "Technician ने Complete किया", en: "Tech Completed" },
-    { key: "siClosedAt",            hi: "SI ने Close किया",      en: "SI Closed" },
-    { key: "cancelledAt",           hi: "Cancelled",             en: "Cancelled" },
+    { key: "createdAt",             label: "Created" },
+    { key: "assignedAt",            label: "Assigned" },
+    { key: "acceptedAt",            label: "Accepted" },
+    { key: "travelStartedAt",       label: "On The Way" },
+    { key: "reachedAt",             label: "Reached Site" },
+    { key: "workStartedAt",         label: "Work Started" },
+    { key: "technicianCompletedAt", label: "Tech Completed" },
+    { key: "siClosedAt",            label: "SI Closed" },
+    { key: "cancelledAt",           label: "Cancelled" },
   ];
   const active = steps.filter(s => timestamps[s.key]);
-
   return (
     <div style={{ paddingLeft: 4 }}>
       {active.map((s, i) => (
@@ -288,7 +202,7 @@ const Timeline = ({ timestamps, status }) => {
             )}
           </div>
           <div style={{ paddingBottom: i < active.length - 1 ? 12 : 0, flex: 1 }}>
-            <div style={{ fontFamily: font.display, fontSize: 14, fontWeight: 700 }}>{s.hi}</div>
+            <div style={{ fontFamily: font.display, fontSize: 14, fontWeight: 700 }}>{s.label}</div>
             <div style={{ fontSize: 12, color: T.muted, marginTop: 2 }}>{timestamps[s.key]}</div>
           </div>
         </div>
@@ -297,41 +211,118 @@ const Timeline = ({ timestamps, status }) => {
   );
 };
 
-// ─── VIEW: SI — ACTIVE WORK (ACCEPTED/IN PROGRESS) ───────────────
-const SIActiveView = ({ work, lang }) => {
+const ActionBtn = ({ label, color = T.green, onClick, loading: busy }) => (
+  <button onClick={onClick} disabled={busy} style={{
+    width: "100%", padding: "14px",
+    borderRadius: 50, border: "none",
+    background: busy ? T.border : color,
+    color: T.white,
+    fontFamily: font.display, fontSize: 15, fontWeight: 700,
+    cursor: busy ? "not-allowed" : "pointer",
+    boxShadow: busy ? "none" : `0 4px 16px ${color}50`,
+    display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+    marginBottom: 10, transition: "all 0.2s",
+  }}>
+    {busy && <div style={{ width: 16, height: 16, border: "3px solid rgba(255,255,255,0.3)", borderTopColor: T.white, borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />}
+    {label}
+  </button>
+);
+
+// ── Site details card (shared) ────────────────────────────────────────
+const SiteCard = ({ work, hi, className }) => (
+  <Card className={className} style={{ marginBottom: 14 }}>
+    <div style={{ padding: "14px 16px" }}>
+      <SectionLabel>SITE DETAILS</SectionLabel>
+      <InfoRow label="CLIENT" value={work.siteClientName} />
+      {work.clientMobile && (
+        <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+          <a href={`tel:${work.clientMobile}`} style={{
+            flex: 1, padding: "9px", borderRadius: 10,
+            background: T.greenDim, color: T.green,
+            border: `1px solid ${T.green}30`,
+            fontFamily: font.display, fontSize: 13, fontWeight: 700,
+            textDecoration: "none", textAlign: "center",
+          }}>📞 {work.clientMobile}</a>
+          <a href={`https://wa.me/91${work.clientMobile}`} target="_blank" rel="noreferrer" style={{
+            flex: "none", padding: "9px 14px", borderRadius: 10,
+            background: "#e6f9f0", color: "#1a7a3a",
+            border: "1px solid #1a7a3a30",
+            fontFamily: font.display, fontSize: 13, fontWeight: 700,
+            textDecoration: "none", textAlign: "center",
+          }}>💬 WA</a>
+        </div>
+      )}
+      <Divider />
+      <div style={{ marginTop: 12 }}>
+        <InfoRow label="SITE ADDRESS" value={`📍 ${work.siteAddress}`} />
+      </div>
+      <Divider />
+      <div style={{ marginTop: 12 }}>
+        <InfoRow label="WORK TYPE" value={work.workType} />
+      </div>
+      {work.description && <>
+        <Divider />
+        <div style={{ marginTop: 12 }}>
+          <InfoRow label="DESCRIPTION" value={work.description} valueStyle={{ color: T.muted, fontSize: 13 }} />
+        </div>
+      </>}
+      <Divider />
+      <div style={{ marginTop: 12, display: "flex", gap: 20, flexWrap: "wrap" }}>
+        <div>
+          <SectionLabel>CHARGE</SectionLabel>
+          <div style={{ fontFamily: font.mono, fontSize: 16, fontWeight: 700, color: T.green }}>₹{work.agreedCharge}</div>
+          <div style={{ fontSize: 11, color: T.muted }}>{work.paymentMode} · {work.paymentBy}</div>
+        </div>
+        <div>
+          <SectionLabel>MATERIAL</SectionLabel>
+          <div style={{ fontSize: 14 }}>{work.materialIncluded === "YES" ? "✅ Included" : work.materialIncluded === "NO" ? "❌ Not included" : "❓ Not sure"}</div>
+        </div>
+        {work.preferredTime && (
+          <div>
+            <SectionLabel>VISIT TIME</SectionLabel>
+            <div style={{ fontSize: 13 }}>⏰ {work.preferredTime}</div>
+          </div>
+        )}
+      </div>
+    </div>
+  </Card>
+);
+
+// ── VIEW: SI — ACTIVE ─────────────────────────────────────────────────
+const SIActiveView = ({ work, lang, onAction }) => {
   const hi = lang === "hi";
-  const st = STATUS_CFG[work.status];
+  const st = STATUS_CFG[work.status] || {};
+  const [acting, setActing] = useState(false);
+
+  const handleCancel = async () => {
+    if (!confirm(hi ? "यह Site Work cancel करें?" : "Cancel this site work?")) return;
+    setActing(true);
+    try {
+      await api.post(`/site-work/${work.id}/cancel`);
+      onAction();
+    } catch (e) { alert(e?.message || "Failed"); }
+    setActing(false);
+  };
 
   return (
     <div>
-      {/* Status banner */}
       <div style={{
         background: T.skyDim, padding: "14px 16px",
         borderBottom: `1px solid ${T.sky}30`,
         display: "flex", alignItems: "center", gap: 10,
       }}>
-        <div style={{
-          width: 10, height: 10, borderRadius: "50%",
-          background: T.sky,
-          animation: "pulse 1.8s ease-in-out infinite",
-          flexShrink: 0,
-        }} />
+        <div style={{ width: 10, height: 10, borderRadius: "50%", background: T.sky, animation: "pulse 1.8s ease-in-out infinite", flexShrink: 0 }} />
         <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: font.display, fontSize: 14, fontWeight: 700, color: T.sky }}>
-            {hi ? st.hi : st.en}
-          </div>
-          <div style={{ fontSize: 12, color: T.muted }}>
-            {hi ? `${work.techName} को notify किया जा चुका है` : `${work.techName} has been notified`}
-          </div>
+          <div style={{ fontFamily: font.display, fontSize: 14, fontWeight: 700, color: T.sky }}>{hi ? st.hi : st.en}</div>
+          <div style={{ fontSize: 12, color: T.muted }}>{hi ? `${work.techName} को notify किया जा चुका है` : `${work.techName} has been notified`}</div>
         </div>
         <Tag label={hi ? st.hi : st.en} color={st.color} />
       </div>
 
       <div style={{ padding: "16px" }}>
-        {/* Technician card */}
         <Card className="fade-up" style={{ marginBottom: 14 }}>
           <div style={{ padding: "14px 16px" }}>
-            <SectionLabel>{hi ? "TECHNICIAN" : "TECHNICIAN"}</SectionLabel>
+            <SectionLabel>TECHNICIAN</SectionLabel>
             <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 12 }}>
               <div style={{
                 width: 48, height: 48, borderRadius: "50%", flexShrink: 0,
@@ -341,9 +332,6 @@ const SIActiveView = ({ work, lang }) => {
               }}>{work.techName[0]}</div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontFamily: font.display, fontSize: 16, fontWeight: 700 }}>{work.techName}</div>
-                <div style={{ fontSize: 12, color: T.muted }}>
-                  {work.techCity} · ✅ {work.techCompletedWork} {hi ? "काम" : "works"} · ⭐ {work.techAvgRating}
-                </div>
               </div>
             </div>
             <div style={{ display: "flex", gap: 8 }}>
@@ -353,7 +341,7 @@ const SIActiveView = ({ work, lang }) => {
                 border: `1px solid ${T.green}30`,
                 fontFamily: font.display, fontSize: 13, fontWeight: 700,
                 textDecoration: "none", textAlign: "center",
-              }}>📞 {hi ? "Call" : "Call"}</a>
+              }}>📞 Call</a>
               <a href={`https://wa.me/91${work.techMobile}`} target="_blank" rel="noreferrer" style={{
                 flex: 1, padding: "10px", borderRadius: 10,
                 background: "#e6f9f0", color: "#1a7a3a",
@@ -365,104 +353,64 @@ const SIActiveView = ({ work, lang }) => {
           </div>
         </Card>
 
-        {/* Site details */}
-        <Card className="fade-up-1" style={{ marginBottom: 14 }}>
-          <div style={{ padding: "14px 16px" }}>
-            <SectionLabel>{hi ? "SITE DETAILS" : "SITE DETAILS"}</SectionLabel>
-            <InfoRow label={hi ? "CLIENT" : "CLIENT"} value={work.siteClientName} />
-            <Divider />
-            <div style={{ marginTop: 12 }}>
-              <InfoRow label={hi ? "SITE ADDRESS" : "SITE ADDRESS"} value={`📍 ${work.siteAddress}`} />
-            </div>
-            <Divider />
-            <div style={{ marginTop: 12 }}>
-              <InfoRow label={hi ? "WORK" : "WORK"} value={work.workType} />
-            </div>
-            <Divider />
-            <div style={{ marginTop: 12 }}>
-              <InfoRow label={hi ? "DESCRIPTION" : "DESCRIPTION"} value={work.description} valueStyle={{ color: T.muted, fontSize: 13 }} />
-            </div>
-            <Divider />
-            <div style={{ marginTop: 12, display: "flex", gap: 20 }}>
-              <div>
-                <SectionLabel>{hi ? "CHARGE" : "CHARGE"}</SectionLabel>
-                <div style={{ fontFamily: font.mono, fontSize: 16, fontWeight: 700, color: T.green }}>₹{work.agreedCharge}</div>
-                <div style={{ fontSize: 11, color: T.muted }}>{work.paymentMode} · {work.paymentBy}</div>
-              </div>
-              <div>
-                <SectionLabel>{hi ? "MATERIAL" : "MATERIAL"}</SectionLabel>
-                <div style={{ fontSize: 14 }}>{work.materialIncluded === "YES" ? "✅ Included" : work.materialIncluded === "NO" ? "❌ Not included" : "❓ Not sure"}</div>
-              </div>
-              <div>
-                <SectionLabel>{hi ? "VISIT TIME" : "VISIT TIME"}</SectionLabel>
-                <div style={{ fontSize: 13 }}>⏰ {work.preferredTime}</div>
-              </div>
-            </div>
-          </div>
-        </Card>
+        <SiteCard work={work} hi={hi} className="fade-up-1" />
 
-        {/* Timeline */}
         <Card className="fade-up-2" style={{ marginBottom: 14 }}>
           <div style={{ padding: "14px 16px" }}>
-            <SectionLabel>{hi ? "TIMELINE" : "TIMELINE"}</SectionLabel>
-            <Timeline timestamps={work.timestamps} status={work.status} />
+            <SectionLabel>TIMELINE</SectionLabel>
+            <Timeline timestamps={work.timestamps} />
           </div>
         </Card>
 
-        {/* Forward technician to client */}
-        <Card className="fade-up-3" style={{ marginBottom: 14, background: "#e6f9f0", border: "1px solid #1a7a3a30" }}>
-          <div style={{ padding: "14px 16px" }}>
-            <div style={{ fontFamily: font.display, fontSize: 14, fontWeight: 700, marginBottom: 6 }}>
-              📤 {hi ? "Technician Contact Client को भेजें" : "Send Technician Contact to Client"}
+        {work.clientMobile && (
+          <Card className="fade-up-3" style={{ marginBottom: 14, background: "#e6f9f0", border: "1px solid #1a7a3a30" }}>
+            <div style={{ padding: "14px 16px" }}>
+              <div style={{ fontFamily: font.display, fontSize: 14, fontWeight: 700, marginBottom: 6 }}>
+                📤 {hi ? "Technician Contact Client को भेजें" : "Send Technician Contact to Client"}
+              </div>
+              <a href={`https://wa.me/91${work.clientMobile}?text=${encodeURIComponent(`Hello ${work.siteClientName}, our technician ${work.techName} (${work.techMobile}) is on the way to your site.`)}`}
+                target="_blank" rel="noreferrer"
+                style={{
+                  display: "block", width: "100%", padding: "11px",
+                  borderRadius: 50, background: "#25D366", color: T.white,
+                  fontFamily: font.display, fontSize: 14, fontWeight: 700,
+                  textDecoration: "none", textAlign: "center",
+                }}>
+                💬 {hi ? "WhatsApp पर भेजें" : "Send on WhatsApp"}
+              </a>
             </div>
-            <div style={{ fontSize: 12, color: T.muted, marginBottom: 10, lineHeight: 1.55 }}>
-              {hi
-                ? `WhatsApp पर ${work.siteClientName} को technician की details भेजें।`
-                : `Send technician details to ${work.siteClientName} on WhatsApp.`}
-            </div>
-            <button style={{
-              width: "100%", padding: "11px",
-              borderRadius: 50, border: "none",
-              background: "#25D366", color: T.white,
-              fontFamily: font.display, fontSize: 14, fontWeight: 700, cursor: "pointer",
-            }}>
-              💬 {hi ? "WhatsApp पर भेजें" : "Send on WhatsApp"}
-            </button>
-          </div>
-        </Card>
+          </Card>
+        )}
 
-        {/* Cancel */}
-        <button style={{
-          width: "100%", padding: "13px", borderRadius: 50,
-          border: `1px solid ${T.border}`, background: "transparent",
-          fontFamily: font.display, fontSize: 14, fontWeight: 700,
-          color: T.error, cursor: "pointer", marginBottom: 8,
-        }}>
-          {hi ? "Site Work Cancel करें" : "Cancel Site Work"}
-        </button>
+        <ActionBtn label={acting ? "Cancelling…" : (hi ? "Site Work Cancel करें" : "Cancel Site Work")} color={T.error} onClick={handleCancel} loading={acting} />
       </div>
     </div>
   );
 };
 
-// ─── VIEW: SI — REVIEW & CLOSE ────────────────────────────────────
-const SIReviewClose = ({ work, lang, onClose }) => {
+// ── VIEW: SI — REVIEW & CLOSE ─────────────────────────────────────────
+const SIReviewClose = ({ work, lang, onClosed }) => {
   const hi = lang === "hi";
-
-  const [stars,          setStars]          = useState(0);
-  const [reachedOnTime,  setReachedOnTime]  = useState(null);
-  const [skillMatch,     setSkillMatch]     = useState(null);
-  const [workCompleted,  setWorkCompleted]  = useState(null);
-  const [behaviourGood,  setBehaviourGood]  = useState(null);
-  const [comment,        setComment]        = useState("");
-  const [photoViewed,    setPhotoViewed]    = useState(false);
-  const [closing,        setClosing]        = useState(false);
+  const [stars, setStars]               = useState(0);
+  const [reachedOnTime, setReachedOnTime] = useState(null);
+  const [skillMatch, setSkillMatch]       = useState(null);
+  const [workCompleted, setWorkCompleted] = useState(null);
+  const [behaviourGood, setBehaviourGood] = useState(null);
+  const [comment, setComment]             = useState("");
+  const [photoViewed, setPhotoViewed]     = useState(false);
+  const [closing, setClosing]             = useState(false);
+  const [closeErr, setCloseErr]           = useState("");
 
   const canClose = stars > 0 && photoViewed;
 
-  const handleClose = () => {
-    setClosing(true);
-    setTimeout(() => { setClosing(false); onClose(); }, 1600);
+  const handleClose = async () => {
+    setClosing(true); setCloseErr("");
+    try {
+      await api.post(`/site-work/${work.id}/close`, {
+        stars, reachedOnTime, skillMatch, workCompleted, behaviourGood, comment,
+      });
+      onClosed();
+    } catch (e) { setCloseErr(e?.message || "Failed"); setClosing(false); }
   };
 
   const BoolToggle = ({ label, value, onChange }) => (
@@ -470,8 +418,8 @@ const SIReviewClose = ({ work, lang, onClose }) => {
       <span style={{ fontSize: 14, color: T.ink }}>{label}</span>
       <div style={{ display: "flex", gap: 6 }}>
         {[
-          { v: true,  l: hi ? "हाँ" : "Yes", color: T.green,   bg: T.greenDim },
-          { v: false, l: hi ? "नहीं" : "No", color: T.error,   bg: T.errorDim },
+          { v: true,  l: hi ? "हाँ" : "Yes", color: T.green, bg: T.greenDim },
+          { v: false, l: hi ? "नहीं" : "No", color: T.error, bg: T.errorDim },
         ].map(o => (
           <button key={String(o.v)} onClick={() => onChange(o.v)} style={{
             padding: "5px 14px", borderRadius: 20,
@@ -488,10 +436,8 @@ const SIReviewClose = ({ work, lang, onClose }) => {
 
   return (
     <div>
-      {/* Urgent banner */}
       <div style={{
-        background: T.saffronDim,
-        padding: "14px 16px",
+        background: T.saffronDim, padding: "14px 16px",
         borderBottom: `1px solid ${T.saffron}40`,
         display: "flex", gap: 10, alignItems: "flex-start",
       }}>
@@ -501,20 +447,18 @@ const SIReviewClose = ({ work, lang, onClose }) => {
             {hi ? "Technician ने काम पूरा किया — Review करें" : "Technician marked work complete — Review now"}
           </div>
           <div style={{ fontSize: 12, color: T.muted }}>
-            {hi ? `${work.techName} ने ${work.timestamps.technicianCompletedAt} को complete mark किया।` : `${work.techName} marked complete at ${work.timestamps.technicianCompletedAt}.`}
+            {work.timestamps.technicianCompletedAt}
           </div>
         </div>
       </div>
 
       <div style={{ padding: "16px" }}>
-
         {/* Proof photo */}
         <Card className="fade-up" style={{ marginBottom: 14, border: `2px solid ${photoViewed ? T.green : T.saffron}` }}>
           <div style={{ padding: "14px 16px" }}>
-            <SectionLabel>{hi ? "PROOF PHOTO" : "PROOF PHOTO"}</SectionLabel>
+            <SectionLabel>PROOF PHOTO</SectionLabel>
             {!photoViewed ? (
               <>
-                {/* Blurred placeholder */}
                 <div style={{
                   height: 160, borderRadius: 12, marginBottom: 10,
                   background: "linear-gradient(135deg, #ddd 0%, #ccc 100%)",
@@ -530,13 +474,12 @@ const SIReviewClose = ({ work, lang, onClose }) => {
                   }}>
                     <span style={{ fontSize: 36 }}>📷</span>
                     <div style={{ fontFamily: font.mono, fontSize: 11, color: T.muted, fontWeight: 700 }}>
-                      {hi ? "TAP TO VIEW PROOF PHOTO" : "TAP TO VIEW PROOF PHOTO"}
+                      TAP TO VIEW PROOF PHOTO
                     </div>
                   </div>
                 </div>
                 <button onClick={() => setPhotoViewed(true)} style={{
-                  width: "100%", padding: "12px",
-                  borderRadius: 50, border: "none",
+                  width: "100%", padding: "12px", borderRadius: 50, border: "none",
                   background: T.saffron, color: T.white,
                   fontFamily: font.display, fontSize: 14, fontWeight: 700, cursor: "pointer",
                   boxShadow: `0 4px 16px ${T.saffron}40`,
@@ -544,39 +487,17 @@ const SIReviewClose = ({ work, lang, onClose }) => {
                   📷 {hi ? "Proof Photo देखें" : "View Proof Photo"}
                 </button>
               </>
-            ) : (
+            ) : work.proofPhotoUrl ? (
               <>
-                {/* "Viewed" state */}
-                <div style={{
-                  height: 160, borderRadius: 12, marginBottom: 10,
-                  background: "linear-gradient(135deg, #c8d8b8, #a8c898)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  position: "relative",
-                }}>
-                  {/* Simulated photo content */}
-                  <div style={{ textAlign: "center" }}>
-                    <div style={{ fontSize: 48 }}>🖼️</div>
-                    <div style={{ fontFamily: font.mono, fontSize: 10, color: "rgba(255,255,255,0.8)", marginTop: 6 }}>
-                      PROOF_PHOTO.jpg · Uploaded {work.timestamps.technicianCompletedAt}
-                    </div>
-                  </div>
-                  <div style={{
-                    position: "absolute", top: 8, right: 8,
-                    background: T.green, color: T.white,
-                    fontFamily: font.mono, fontSize: 10, fontWeight: 700,
-                    padding: "3px 10px", borderRadius: 10, letterSpacing: "0.06em",
-                  }}>VIEWED ✓</div>
-                </div>
-                <div style={{
-                  background: T.greenDim, borderRadius: 10,
-                  padding: "10px 12px",
-                  fontSize: 12, color: T.green, lineHeight: 1.55,
-                }}>
-                  {hi
-                    ? "ℹ️ यह photo accept/close करने के बाद server से delete हो जाएगी। ज्यादा proof के लिए technician को WhatsApp करें।"
-                    : "ℹ️ This photo will be deleted from server after you close this work. For more proof, WhatsApp the technician."}
+                <img src={work.proofPhotoUrl} alt="Proof" style={{ width: "100%", borderRadius: 12, marginBottom: 10, display: "block" }} />
+                <div style={{ background: T.greenDim, borderRadius: 10, padding: "10px 12px", fontSize: 12, color: T.green, lineHeight: 1.55 }}>
+                  {hi ? "ℹ️ यह photo close करने पर server से delete हो जाएगी।" : "ℹ️ This photo will be deleted from server after you close this work."}
                 </div>
               </>
+            ) : (
+              <div style={{ padding: "20px", textAlign: "center", color: T.muted, fontSize: 13 }}>
+                {hi ? "Photo अभी उपलब्ध नहीं" : "Photo not available"}
+              </div>
             )}
           </div>
         </Card>
@@ -584,14 +505,13 @@ const SIReviewClose = ({ work, lang, onClose }) => {
         {/* Summary */}
         <Card className="fade-up-1" style={{ marginBottom: 14 }}>
           <div style={{ padding: "14px 16px" }}>
-            <SectionLabel>{hi ? "WORK SUMMARY" : "WORK SUMMARY"}</SectionLabel>
+            <SectionLabel>WORK SUMMARY</SectionLabel>
             <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 12 }}>
               <div style={{
                 width: 40, height: 40, borderRadius: "50%",
                 background: `linear-gradient(135deg, ${T.saffron}, #c45a08)`,
                 display: "flex", alignItems: "center", justifyContent: "center",
-                fontFamily: font.display, fontSize: 17, fontWeight: 800, color: T.white,
-                flexShrink: 0,
+                fontFamily: font.display, fontSize: 17, fontWeight: 800, color: T.white, flexShrink: 0,
               }}>{work.techName[0]}</div>
               <div>
                 <div style={{ fontFamily: font.display, fontSize: 15, fontWeight: 700 }}>{work.techName}</div>
@@ -604,10 +524,8 @@ const SIReviewClose = ({ work, lang, onClose }) => {
                 <div style={{ fontFamily: font.mono, fontSize: 16, fontWeight: 700, color: T.green }}>₹{work.agreedCharge}</div>
               </div>
               <div>
-                <SectionLabel>{hi ? "DURATION" : "DURATION"}</SectionLabel>
-                <div style={{ fontSize: 13, fontWeight: 700 }}>
-                  {work.timestamps.workStartedAt} → {work.timestamps.technicianCompletedAt}
-                </div>
+                <SectionLabel>DURATION</SectionLabel>
+                <div style={{ fontSize: 12, fontWeight: 700 }}>{work.timestamps.workStartedAt} → {work.timestamps.technicianCompletedAt}</div>
               </div>
             </div>
           </div>
@@ -617,11 +535,8 @@ const SIReviewClose = ({ work, lang, onClose }) => {
         <Card className="fade-up-2" style={{ marginBottom: 14 }}>
           <div style={{ padding: "14px 16px" }}>
             <SectionLabel>{hi ? "TECHNICIAN को RATE करें (जरूरी)" : "RATE THE TECHNICIAN (REQUIRED)"}</SectionLabel>
-
             <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 14, color: T.muted, marginBottom: 10 }}>
-                {hi ? "Overall Rating" : "Overall Rating"}
-              </div>
+              <div style={{ fontSize: 14, color: T.muted, marginBottom: 10 }}>Overall Rating</div>
               <StarPicker value={stars} onChange={setStars} size={36} />
               {stars > 0 && (
                 <div style={{ marginTop: 8, fontFamily: font.mono, fontSize: 12, color: T.saffron, fontWeight: 700 }}>
@@ -629,7 +544,6 @@ const SIReviewClose = ({ work, lang, onClose }) => {
                 </div>
               )}
             </div>
-
             <Divider />
             <div style={{ marginTop: 14 }}>
               <BoolToggle label={hi ? "समय पर पहुंचा?" : "Reached on time?"} value={reachedOnTime} onChange={setReachedOnTime} />
@@ -637,201 +551,102 @@ const SIReviewClose = ({ work, lang, onClose }) => {
               <BoolToggle label={hi ? "काम पूरा हुआ?" : "Work fully completed?"} value={workCompleted} onChange={setWorkCompleted} />
               <BoolToggle label={hi ? "Behaviour अच्छा था?" : "Behaviour was good?"} value={behaviourGood} onChange={setBehaviourGood} />
             </div>
-
             <div style={{ marginTop: 4 }}>
-              <SectionLabel>{hi ? "COMMENT (OPTIONAL)" : "COMMENT (OPTIONAL)"}</SectionLabel>
-              <textarea
-                value={comment}
-                onChange={e => setComment(e.target.value)}
-                placeholder={hi ? "Additional comments…" : "Additional comments…"}
-                rows={2}
-                style={{
-                  width: "100%", padding: "11px 14px",
-                  border: `2px solid ${comment ? T.sky : T.border}`,
-                  borderRadius: 10, outline: "none",
-                  fontFamily: font.body, fontSize: 13, color: T.ink,
-                  background: T.white, resize: "none", lineHeight: 1.5,
-                }}
-              />
+              <SectionLabel>COMMENT (OPTIONAL)</SectionLabel>
+              <textarea value={comment} onChange={e => setComment(e.target.value)}
+                placeholder="Additional comments…" rows={2}
+                style={{ width: "100%", padding: "11px 14px", border: `2px solid ${comment ? T.sky : T.border}`, borderRadius: 10, outline: "none", fontFamily: font.body, fontSize: 13, color: T.ink, background: T.white, resize: "none", lineHeight: 1.5 }} />
             </div>
           </div>
         </Card>
 
-        {/* Payment reminder */}
-        <div className="fade-up-3" style={{
-          background: T.warnDim, borderRadius: 12,
-          padding: "12px 14px", marginBottom: 16,
-          border: `1px solid ${T.warn}40`,
-          fontSize: 13, color: T.warn, lineHeight: 1.6,
-        }}>
+        <div className="fade-up-3" style={{ background: T.warnDim, borderRadius: 12, padding: "12px 14px", marginBottom: 16, border: `1px solid ${T.warn}40`, fontSize: 13, color: T.warn, lineHeight: 1.6 }}>
           💰 {hi
-            ? `Payment directly ${work.paymentBy} द्वारा technician को — ₹${work.agreedCharge} (${work.paymentMode}). App कोई payment collect नहीं करता।`
-            : `Payment directly by ${work.paymentBy} to technician — ₹${work.agreedCharge} (${work.paymentMode}). App collects no payment.`}
+            ? `Payment directly ${work.paymentBy} द्वारा technician को — ₹${work.agreedCharge} (${work.paymentMode}).`
+            : `Payment directly by ${work.paymentBy} to technician — ₹${work.agreedCharge} (${work.paymentMode}).`}
         </div>
 
-        {/* Close button */}
-        {closing ? (
-          <div style={{
-            width: "100%", padding: "15px",
-            borderRadius: 50, background: T.green,
-            display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
-            color: T.white, fontFamily: font.display, fontSize: 16, fontWeight: 700,
-          }}>
-            <div style={{ width: 18, height: 18, border: "3px solid rgba(255,255,255,0.3)", borderTopColor: T.white, borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-            {hi ? "Closing…" : "Closing…"}
-          </div>
-        ) : (
-          <button onClick={handleClose} disabled={!canClose} style={{
-            width: "100%", padding: "15px",
-            borderRadius: 50, border: "none",
-            background: canClose ? T.green : T.border,
-            color: T.white,
-            fontFamily: font.display, fontSize: 16, fontWeight: 700,
-            cursor: canClose ? "pointer" : "not-allowed",
-            boxShadow: canClose ? `0 4px 20px ${T.green}50` : "none",
-            marginBottom: 8, transition: "all 0.2s",
-          }}>
-            ✓ {hi ? "Site Work Close करें" : "Close Site Work"}
-          </button>
-        )}
+        {closeErr && <div style={{ background: T.errorDim, borderRadius: 10, padding: "10px 14px", marginBottom: 12, fontSize: 13, color: T.error }}>{closeErr}</div>}
+
+        <ActionBtn
+          label={closing ? (hi ? "Closing…" : "Closing…") : (hi ? "✓ Site Work Close करें" : "✓ Close Site Work")}
+          color={canClose ? T.green : T.border}
+          onClick={canClose ? handleClose : undefined}
+          loading={closing}
+        />
 
         {!canClose && (
           <p style={{ textAlign: "center", fontSize: 12, color: T.muted, fontFamily: font.mono, marginBottom: 8 }}>
             {hi ? "Photo देखें और rating दें — then close करें" : "View proof photo and give rating to close"}
           </p>
         )}
-
-        {/* Issue report */}
-        <button style={{
-          width: "100%", padding: "11px",
-          borderRadius: 50, border: `1px solid ${T.error}40`,
-          background: T.errorDim, color: T.error,
-          fontFamily: font.display, fontSize: 13, fontWeight: 700,
-          cursor: "pointer", marginBottom: 24,
-        }}>
-          ⚠️ {hi ? "Issue Report करें" : "Report an Issue"}
-        </button>
       </div>
     </div>
   );
 };
 
-// ─── VIEW: CLOSED WORK ────────────────────────────────────────────
+// ── VIEW: CLOSED ──────────────────────────────────────────────────────
 const ClosedView = ({ work, lang }) => {
   const hi = lang === "hi";
   const r = work.ratingGiven;
-
   return (
     <div>
-      <div style={{
-        background: T.greenDim, padding: "14px 16px",
-        borderBottom: `1px solid ${T.green}30`,
-        display: "flex", gap: 10, alignItems: "center",
-      }}>
+      <div style={{ background: T.greenDim, padding: "14px 16px", borderBottom: `1px solid ${T.green}30`, display: "flex", gap: 10, alignItems: "center" }}>
         <span style={{ fontSize: 22 }}>✅</span>
         <div>
-          <div style={{ fontFamily: font.display, fontSize: 15, fontWeight: 700, color: T.green }}>
-            {hi ? "Site Work Closed" : "Site Work Closed"}
-          </div>
-          <div style={{ fontSize: 12, color: T.muted }}>
-            {work.timestamps.siClosedAt}
-          </div>
+          <div style={{ fontFamily: font.display, fontSize: 15, fontWeight: 700, color: T.green }}>Site Work Closed</div>
+          <div style={{ fontSize: 12, color: T.muted }}>{work.timestamps.siClosedAt}</div>
         </div>
-        <div style={{ marginLeft: "auto" }}>
-          <Tag label={hi ? "CLOSED" : "CLOSED"} color="green" />
-        </div>
+        <div style={{ marginLeft: "auto" }}><Tag label="CLOSED" color="green" /></div>
       </div>
-
       <div style={{ padding: "16px" }}>
-        {/* Rating summary */}
         {r && (
           <Card className="fade-up" style={{ marginBottom: 14 }}>
             <div style={{ padding: "14px 16px" }}>
-              <SectionLabel>{hi ? "RATING GIVEN" : "RATING GIVEN"}</SectionLabel>
-              <div style={{ marginBottom: 10 }}>
-                <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
-                  {[1,2,3,4,5].map(n => (
-                    <span key={n} style={{ fontSize: 28, color: n <= r.stars ? "#f5a623" : T.border }}>★</span>
-                  ))}
-                </div>
-                <div style={{ fontFamily: font.mono, fontSize: 12, color: T.saffron, fontWeight: 700 }}>
-                  {["","Poor","Fair","Good","Very Good","Excellent"][r.stars].toUpperCase()}
-                </div>
+              <SectionLabel>RATING GIVEN</SectionLabel>
+              <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
+                {[1,2,3,4,5].map(n => <span key={n} style={{ fontSize: 28, color: n <= r.stars ? "#f5a623" : T.border }}>★</span>)}
+              </div>
+              <div style={{ fontFamily: font.mono, fontSize: 12, color: T.saffron, fontWeight: 700, marginBottom: 10 }}>
+                {["","POOR","FAIR","GOOD","VERY GOOD","EXCELLENT"][r.stars]}
               </div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                 {[
-                  { v: r.reachedOnTime,  l: hi ? "On-time" : "On-time" },
-                  { v: r.skillMatch,     l: hi ? "Skill Match" : "Skill Match" },
-                  { v: r.workCompleted,  l: hi ? "Work Done" : "Work Done" },
-                  { v: r.behaviourGood,  l: hi ? "Good Behaviour" : "Behaviour" },
+                  { v: r.reachedOnTime, l: "On-time" },
+                  { v: r.skillMatch,    l: "Skill Match" },
+                  { v: r.workCompleted, l: "Work Done" },
+                  { v: r.behaviourGood, l: "Behaviour" },
                 ].map(b => (
-                  <span key={b.l} style={{
-                    padding: "4px 12px", borderRadius: 20,
-                    background: b.v ? T.greenDim : T.errorDim,
-                    color: b.v ? T.green : T.error,
-                    fontFamily: font.mono, fontSize: 10, fontWeight: 700,
-                  }}>
+                  <span key={b.l} style={{ padding: "4px 12px", borderRadius: 20, background: b.v ? T.greenDim : T.errorDim, color: b.v ? T.green : T.error, fontFamily: font.mono, fontSize: 10, fontWeight: 700 }}>
                     {b.v ? "✓" : "✗"} {b.l}
                   </span>
                 ))}
               </div>
-              {r.comment && (
-                <div style={{ marginTop: 10, fontSize: 13, color: T.muted, fontStyle: "italic" }}>
-                  "{r.comment}"
-                </div>
-              )}
+              {r.comment && <div style={{ marginTop: 10, fontSize: 13, color: T.muted, fontStyle: "italic" }}>"{r.comment}"</div>}
             </div>
           </Card>
         )}
-
-        {/* Work details */}
         <Card className="fade-up-1" style={{ marginBottom: 14 }}>
           <div style={{ padding: "14px 16px" }}>
-            <SectionLabel>{hi ? "WORK DETAILS" : "WORK DETAILS"}</SectionLabel>
-            <InfoRow label={hi ? "TECHNICIAN" : "TECHNICIAN"} value={work.techName} />
-            <Divider />
-            <div style={{ marginTop: 12 }}>
-              <InfoRow label={hi ? "CLIENT" : "CLIENT"} value={work.siteClientName} />
-            </div>
-            <Divider />
-            <div style={{ marginTop: 12 }}>
-              <InfoRow label="WORK TYPE" value={work.workType} />
-            </div>
+            <SectionLabel>WORK DETAILS</SectionLabel>
+            <InfoRow label="TECHNICIAN" value={work.techName} />
+            <Divider /><div style={{ marginTop: 12 }}><InfoRow label="CLIENT" value={work.siteClientName} /></div>
+            <Divider /><div style={{ marginTop: 12 }}><InfoRow label="WORK TYPE" value={work.workType} /></div>
             <Divider />
             <div style={{ marginTop: 12, display: "flex", gap: 24 }}>
-              <div>
-                <SectionLabel>CHARGE</SectionLabel>
-                <div style={{ fontFamily: font.mono, fontSize: 16, fontWeight: 700, color: T.green }}>₹{work.agreedCharge}</div>
-              </div>
-              <div>
-                <SectionLabel>PAYMENT</SectionLabel>
-                <div style={{ fontSize: 13 }}>{work.paymentMode} · {work.paymentBy}</div>
-              </div>
+              <div><SectionLabel>CHARGE</SectionLabel><div style={{ fontFamily: font.mono, fontSize: 16, fontWeight: 700, color: T.green }}>₹{work.agreedCharge}</div></div>
+              <div><SectionLabel>PAYMENT</SectionLabel><div style={{ fontSize: 13 }}>{work.paymentMode} · {work.paymentBy}</div></div>
             </div>
           </div>
         </Card>
-
-        {/* Proof deleted note */}
-        <div className="fade-up-2" style={{
-          background: T.paper, borderRadius: 12,
-          padding: "12px 14px", marginBottom: 14,
-          border: `1px solid ${T.border}`,
-          fontSize: 12, color: T.muted, lineHeight: 1.6,
-          display: "flex", gap: 8, alignItems: "flex-start",
-        }}>
+        <div className="fade-up-2" style={{ background: T.paper, borderRadius: 12, padding: "12px 14px", marginBottom: 14, border: `1px solid ${T.border}`, fontSize: 12, color: T.muted, lineHeight: 1.6, display: "flex", gap: 8 }}>
           <span style={{ fontSize: 16 }}>🗑️</span>
-          <span>
-            {hi
-              ? "Proof photo server से delete हो गई। Only metadata stored है।"
-              : "Proof photo has been deleted from server. Only metadata is retained."}
-          </span>
+          <span>{hi ? "Proof photo server से delete हो गई।" : "Proof photo deleted from server. Only metadata retained."}</span>
         </div>
-
-        {/* Full timeline */}
         <Card className="fade-up-3" style={{ marginBottom: 24 }}>
           <div style={{ padding: "14px 16px" }}>
-            <SectionLabel>{hi ? "FULL TIMELINE" : "FULL TIMELINE"}</SectionLabel>
-            <Timeline timestamps={work.timestamps} status={work.status} />
+            <SectionLabel>FULL TIMELINE</SectionLabel>
+            <Timeline timestamps={work.timestamps} />
           </div>
         </Card>
       </div>
@@ -839,130 +654,83 @@ const ClosedView = ({ work, lang }) => {
   );
 };
 
-// ─── VIEW: TECHNICIAN PENDING ─────────────────────────────────────
-const TechPendingView = ({ work, lang, onAccept, onReject }) => {
+// ── VIEW: TECH — PENDING ACCEPTANCE ──────────────────────────────────
+const TechPendingView = ({ work, lang, onAction }) => {
   const hi = lang === "hi";
-  const [accepted, setAccepted] = useState(null);
   const [confirmed, setConfirmed] = useState(false);
+  const [acting, setActing] = useState(null);
+  const [done, setDone] = useState(null);
 
-  if (accepted === true) {
-    return (
-      <div style={{ padding: "40px 24px", textAlign: "center" }}>
-        <div className="pop-in" style={{
-          width: 80, height: 80, borderRadius: "50%",
-          background: T.greenDim, border: `3px solid ${T.green}`,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          margin: "0 auto 20px", fontSize: 36,
-        }}>✅</div>
-        <h2 style={{ fontFamily: font.display, fontSize: 22, fontWeight: 800, marginBottom: 10 }}>
-          {hi ? "काम Accept कर लिया!" : "Work Accepted!"}
-        </h2>
-        <p style={{ fontSize: 14, color: T.muted, lineHeight: 1.65, marginBottom: 20 }}>
-          {hi
-            ? `${work.siName} को notify कर दिया गया। Site पर जाने के लिए तैयार हो जाएं।`
-            : `${work.siName} has been notified. Get ready to travel to the site.`}
-        </p>
-        <div style={{
-          background: T.saffronDim, borderRadius: 12,
-          padding: "12px 14px", marginBottom: 20,
-          fontSize: 13, color: "#7a4a1a", lineHeight: 1.6,
-          textAlign: "left",
-        }}>
-          📍 {work.siteAddress}
-        </div>
-        <a href={`https://maps.google.com/?q=${encodeURIComponent(work.siteAddress)}`} target="_blank" rel="noreferrer" style={{
-          display: "block", width: "100%", padding: "13px",
-          borderRadius: 50, border: "none",
-          background: T.sky, color: T.white,
-          fontFamily: font.display, fontSize: 15, fontWeight: 700,
-          textDecoration: "none", textAlign: "center",
-          boxShadow: `0 4px 16px ${T.sky}40`,
-        }}>
-          🗺️ {hi ? "Google Maps में खोलें" : "Open in Google Maps"}
-        </a>
-      </div>
-    );
-  }
+  const doAccept = async () => {
+    if (!confirmed) return;
+    setActing("accept");
+    try { await api.post(`/site-work/${work.id}/accept`); setDone("accepted"); }
+    catch (e) { alert(e?.message || "Failed"); setActing(null); }
+  };
+  const doReject = async () => {
+    setActing("reject");
+    try { await api.post(`/site-work/${work.id}/reject`); setDone("rejected"); }
+    catch (e) { alert(e?.message || "Failed"); setActing(null); }
+  };
 
-  if (accepted === false) {
-    return (
-      <div style={{ padding: "40px 24px", textAlign: "center" }}>
-        <div style={{
-          width: 80, height: 80, borderRadius: "50%",
-          background: T.errorDim, border: `3px solid ${T.error}`,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          margin: "0 auto 20px", fontSize: 36,
-        }}>✕</div>
-        <h2 style={{ fontFamily: font.display, fontSize: 22, fontWeight: 800, marginBottom: 10 }}>
-          {hi ? "काम Reject कर दिया" : "Work Rejected"}
-        </h2>
-        <p style={{ fontSize: 14, color: T.muted, lineHeight: 1.65 }}>
-          {hi ? `${work.siName} को notify कर दिया गया।` : `${work.siName} has been notified.`}
-        </p>
+  if (done === "accepted") return (
+    <div style={{ padding: "40px 24px", textAlign: "center" }}>
+      <div className="pop-in" style={{ width: 80, height: 80, borderRadius: "50%", background: T.greenDim, border: `3px solid ${T.green}`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", fontSize: 36 }}>✅</div>
+      <h2 style={{ fontFamily: font.display, fontSize: 22, fontWeight: 800, marginBottom: 10 }}>{hi ? "काम Accept कर लिया!" : "Work Accepted!"}</h2>
+      <p style={{ fontSize: 14, color: T.muted, lineHeight: 1.65, marginBottom: 20 }}>{hi ? `${work.siName} को notify कर दिया गया।` : `${work.siName} has been notified.`}</p>
+      <div style={{ background: T.saffronDim, borderRadius: 12, padding: "12px 14px", marginBottom: 20, fontSize: 13, color: "#7a4a1a", lineHeight: 1.6, textAlign: "left" }}>
+        📍 {work.siteAddress}
       </div>
-    );
-  }
+      <a href={`https://maps.google.com/?q=${encodeURIComponent(work.siteAddress)}`} target="_blank" rel="noreferrer"
+        style={{ display: "block", width: "100%", padding: "13px", borderRadius: 50, background: T.sky, color: T.white, fontFamily: font.display, fontSize: 15, fontWeight: 700, textDecoration: "none", textAlign: "center" }}>
+        🗺️ {hi ? "Google Maps में खोलें" : "Open in Google Maps"}
+      </a>
+    </div>
+  );
+
+  if (done === "rejected") return (
+    <div style={{ padding: "40px 24px", textAlign: "center" }}>
+      <div style={{ width: 80, height: 80, borderRadius: "50%", background: T.errorDim, border: `3px solid ${T.error}`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", fontSize: 36 }}>✕</div>
+      <h2 style={{ fontFamily: font.display, fontSize: 22, fontWeight: 800, marginBottom: 10 }}>{hi ? "काम Reject कर दिया" : "Work Rejected"}</h2>
+      <p style={{ fontSize: 14, color: T.muted }}>{hi ? `${work.siName} को notify कर दिया गया।` : `${work.siName} has been notified.`}</p>
+    </div>
+  );
 
   return (
     <div>
-      {/* Incoming banner */}
-      <div style={{
-        background: T.saffronDim, padding: "14px 16px",
-        borderBottom: `1px solid ${T.saffron}40`,
-        display: "flex", gap: 10, alignItems: "center",
-      }}>
-        <div style={{
-          width: 10, height: 10, borderRadius: "50%",
-          background: T.saffron,
-          animation: "pulse 1.4s ease-in-out infinite",
-          flexShrink: 0,
-        }} />
+      <div style={{ background: T.saffronDim, padding: "14px 16px", borderBottom: `1px solid ${T.saffron}40`, display: "flex", gap: 10, alignItems: "center" }}>
+        <div style={{ width: 10, height: 10, borderRadius: "50%", background: T.saffron, animation: "pulse 1.4s ease-in-out infinite", flexShrink: 0 }} />
         <div>
-          <div style={{ fontFamily: font.display, fontSize: 14, fontWeight: 700, color: T.saffron }}>
-            {hi ? "नया Site Work Request!" : "New Site Work Request!"}
-          </div>
-          <div style={{ fontSize: 12, color: T.muted }}>
-            {hi ? `${work.siName} · ${work.timestamps.assignedAt}` : `${work.siName} · ${work.timestamps.assignedAt}`}
-          </div>
+          <div style={{ fontFamily: font.display, fontSize: 14, fontWeight: 700, color: T.saffron }}>{hi ? "नया Site Work Request!" : "New Site Work Request!"}</div>
+          <div style={{ fontSize: 12, color: T.muted }}>{work.siName} · {work.timestamps.assignedAt}</div>
         </div>
       </div>
-
       <div style={{ padding: "16px" }}>
-        {/* SI info */}
         <Card className="fade-up" style={{ marginBottom: 14 }}>
           <div style={{ padding: "14px 16px" }}>
             <SectionLabel>SI / CONTRACTOR</SectionLabel>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-              <div>
-                <div style={{ fontFamily: font.display, fontSize: 16, fontWeight: 700 }}>{work.siName}</div>
-                <div style={{ fontSize: 12, color: T.muted }}>{work.siCity}</div>
-              </div>
-              <div style={{ display: "flex", gap: 8 }}>
-                <button style={{ width:38,height:38,borderRadius:"50%",background:T.greenDim,border:`1px solid ${T.green}30`,fontSize:18,cursor:"pointer" }}>📞</button>
-                <button style={{ width:38,height:38,borderRadius:"50%",background:"#e6f9f0",border:"1px solid #1a7a3a30",fontSize:18,cursor:"pointer" }}>💬</button>
-              </div>
-            </div>
+            <div style={{ fontFamily: font.display, fontSize: 16, fontWeight: 700, marginBottom: 8 }}>{work.siName}</div>
             <div style={{ background: T.saffronDim, borderRadius: 10, padding: "10px 12px", fontSize: 12, color: "#7a4a1a", lineHeight: 1.6 }}>
-              💡 {hi ? "Accept करने से पहले SI से call/WhatsApp करके work scope, charges, और time confirm करें।" : "Before accepting, call/WhatsApp SI to confirm work scope, charges, and time."}
+              💡 {hi ? "Accept करने से पहले SI से call/WhatsApp करके work scope confirm करें।" : "Before accepting, confirm work scope with SI."}
             </div>
           </div>
         </Card>
 
-        {/* Work details */}
         <Card className="fade-up-1" style={{ marginBottom: 14 }}>
           <div style={{ padding: "14px 16px" }}>
-            <SectionLabel>{hi ? "WORK DETAILS" : "WORK DETAILS"}</SectionLabel>
+            <SectionLabel>WORK DETAILS</SectionLabel>
             {[
-              { l: hi?"WORK TYPE":"WORK TYPE",         v: work.workType },
-              { l: hi?"SITE ADDRESS":"SITE ADDRESS",   v: `📍 ${work.siteAddress} · ${work.distanceKm} km` },
-              { l: hi?"DESCRIPTION":"DESCRIPTION",     v: work.description },
-              { l: hi?"VISIT TIME":"VISIT TIME",       v: `⏰ ${work.preferredTime}` },
-              { l: hi?"CHARGE":"CHARGE",               v: `₹${work.agreedCharge} · ${work.paymentMode} · By ${work.paymentBy}` },
-              { l: hi?"MATERIAL":"MATERIAL",           v: work.materialIncluded === "YES" ? "✅ Included" : "❌ Not included" },
-            ].map((r, i) => (
+              { l: "CLIENT",       v: work.siteClientName },
+              { l: "WORK TYPE",    v: work.workType },
+              { l: "SITE ADDRESS", v: `📍 ${work.siteAddress}` },
+              { l: "DESCRIPTION",  v: work.description },
+              { l: "VISIT TIME",   v: `⏰ ${work.preferredTime}` },
+              { l: "CHARGE",       v: `₹${work.agreedCharge} · ${work.paymentMode} · By ${work.paymentBy}` },
+              { l: "MATERIAL",     v: work.materialIncluded === "YES" ? "✅ Included" : "❌ Not included" },
+            ].filter(r => r.v && r.v !== '⏰ undefined').map((r, i) => (
               <div key={r.l}>
                 {i > 0 && <Divider />}
-                <div style={{ marginTop: i > 0 ? 12 : 0, marginBottom: i < 5 ? 12 : 0 }}>
+                <div style={{ marginTop: i > 0 ? 12 : 0, marginBottom: 12 }}>
                   <InfoRow label={r.l} value={r.v} valueStyle={r.l === "DESCRIPTION" ? { color: T.muted, fontSize: 13 } : {}} />
                 </div>
               </div>
@@ -970,51 +738,27 @@ const TechPendingView = ({ work, lang, onAccept, onReject }) => {
           </div>
         </Card>
 
-        {/* T&C confirmation */}
+        {/* Client contact revealed only after accepting — not shown on pending request */}
+
         <button onClick={() => setConfirmed(!confirmed)} style={{
-          width: "100%", padding: "14px 16px",
-          borderRadius: 12, border: `2px solid ${confirmed ? T.green : T.border}`,
+          width: "100%", padding: "14px 16px", borderRadius: 12,
+          border: `2px solid ${confirmed ? T.green : T.border}`,
           background: confirmed ? T.greenDim : T.white,
           display: "flex", alignItems: "flex-start", gap: 12,
-          cursor: "pointer", marginBottom: 16, textAlign: "left",
-          transition: "all 0.2s",
+          cursor: "pointer", marginBottom: 16, textAlign: "left", transition: "all 0.2s",
         }}>
-          <div style={{
-            width: 22, height: 22, borderRadius: 6, flexShrink: 0, marginTop: 1,
-            border: `2px solid ${confirmed ? T.green : T.border}`,
-            background: confirmed ? T.green : T.white,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            transition: "all 0.2s",
-          }}>
+          <div style={{ width: 22, height: 22, borderRadius: 6, flexShrink: 0, marginTop: 1, border: `2px solid ${confirmed ? T.green : T.border}`, background: confirmed ? T.green : T.white, display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}>
             {confirmed && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5"><polyline points="20 6 9 17 4 12"/></svg>}
           </div>
           <span style={{ fontSize: 13, color: T.ink, lineHeight: 1.6, fontFamily: font.body }}>
-            {hi
-              ? "मैं यह Site Work accept करता/करती हूँ। Payment directly SI/Client से मिलेगी। Platform payment collect, guarantee, या settle नहीं करता।"
-              : "I accept this Site Work. Payment will be received directly from SI/Client. Platform does not collect, guarantee, or settle payment."}
+            {hi ? "मैं यह Site Work accept करता/करती हूँ। Payment directly SI/Client से मिलेगी।" : "I accept this Site Work. Payment will be received directly from SI/Client."}
           </span>
         </button>
 
-        {/* Accept / Reject */}
         <div style={{ display: "flex", gap: 10, marginBottom: 24 }}>
-          <button onClick={() => confirmed && setAccepted(true)} style={{
-            flex: 1, padding: "15px",
-            borderRadius: 50, border: "none",
-            background: confirmed ? T.green : T.border, color: T.white,
-            fontFamily: font.display, fontSize: 15, fontWeight: 700,
-            cursor: confirmed ? "pointer" : "not-allowed",
-            boxShadow: confirmed ? `0 4px 16px ${T.green}40` : "none",
-            transition: "all 0.2s",
-          }}>
-            ✓ {hi ? "काम स्वीकार करें" : "Accept Work"}
-          </button>
-          <button onClick={() => setAccepted(false)} style={{
-            flex: 1, padding: "15px",
-            borderRadius: 50, border: `1px solid ${T.border}`,
-            background: T.white, color: T.error,
-            fontFamily: font.display, fontSize: 15, fontWeight: 700, cursor: "pointer",
-          }}>
-            ✕ {hi ? "अस्वीकार" : "Reject"}
+          <ActionBtn label={acting === "accept" ? "Accepting…" : (hi ? "✓ काम स्वीकार करें" : "✓ Accept Work")} color={confirmed ? T.green : T.border} onClick={doAccept} loading={acting === "accept"} />
+          <button onClick={doReject} disabled={!!acting} style={{ flex: 1, padding: "15px", borderRadius: 50, border: `1px solid ${T.border}`, background: T.white, color: T.error, fontFamily: font.display, fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+            {acting === "reject" ? "…" : (hi ? "✕ अस्वीकार" : "✕ Reject")}
           </button>
         </div>
       </div>
@@ -1022,185 +766,201 @@ const TechPendingView = ({ work, lang, onAccept, onReject }) => {
   );
 };
 
-// ─── CLOSED SUCCESS ANIMATION ─────────────────────────────────────
+// ── VIEW: TECH — ACTIVE WORK ──────────────────────────────────────────
+const TechActiveView = ({ work, lang, onAction }) => {
+  const hi = lang === "hi";
+  const [acting, setActing] = useState(false);
+
+  const NEXT = {
+    ACCEPTED:     { label: hi ? "🚗 निकल रहा/रही हूँ" : "🚗 Starting Travel", endpoint: "start-travel" },
+    ON_THE_WAY:   { label: hi ? "📍 Site पर पहुंच गया/गई" : "📍 I've Reached Site", endpoint: "reached" },
+    REACHED:      { label: hi ? "🔧 काम शुरू करें" : "🔧 Start Work", endpoint: "start-work" },
+    WORK_STARTED: { label: hi ? "✅ काम पूरा हो गया" : "✅ Mark Work Complete", endpoint: "complete" },
+  };
+  const next = NEXT[work.status];
+
+  const handleNext = async () => {
+    if (!next) return;
+    setActing(true);
+    try {
+      await api.post(`/site-work/${work.id}/${next.endpoint}`);
+      onAction();
+    } catch (e) { alert(e?.message || "Failed"); setActing(false); }
+  };
+
+  const st = STATUS_CFG[work.status] || {};
+
+  return (
+    <div>
+      <div style={{ background: T.saffronDim, padding: "14px 16px", borderBottom: `1px solid ${T.saffron}40`, display: "flex", alignItems: "center", gap: 10 }}>
+        <div style={{ width: 10, height: 10, borderRadius: "50%", background: T.saffron, animation: "pulse 1.6s ease-in-out infinite", flexShrink: 0 }} />
+        <div style={{ flex: 1 }}>
+          <div style={{ fontFamily: font.display, fontSize: 14, fontWeight: 700, color: T.saffron }}>{hi ? st.hi : st.en}</div>
+          <div style={{ fontSize: 12, color: T.muted }}>{work.siteClientName} · {work.siteAddress.split(",")[0]}</div>
+        </div>
+        <Tag label={hi ? st.hi : st.en} color={st.color} />
+      </div>
+      <div style={{ padding: "16px" }}>
+        {next && (
+          <div className="fade-up" style={{ marginBottom: 16 }}>
+            <ActionBtn label={acting ? "Updating…" : next.label} color={T.saffron} onClick={handleNext} loading={acting} />
+          </div>
+        )}
+
+        <SiteCard work={work} hi={hi} className="fade-up-1" />
+
+        <Card className="fade-up-2" style={{ marginBottom: 14 }}>
+          <div style={{ padding: "14px 16px" }}>
+            <SectionLabel>SI / CONTRACTOR</SectionLabel>
+            <div style={{ fontFamily: font.display, fontSize: 15, fontWeight: 700 }}>{work.siName}</div>
+          </div>
+        </Card>
+
+        <a href={`https://maps.google.com/?q=${encodeURIComponent(work.siteAddress)}`} target="_blank" rel="noreferrer"
+          style={{ display: "block", width: "100%", padding: "13px", borderRadius: 50, background: T.sky, color: T.white, fontFamily: font.display, fontSize: 15, fontWeight: 700, textDecoration: "none", textAlign: "center", marginBottom: 14 }}>
+          🗺️ {hi ? "Google Maps में खोलें" : "Open in Google Maps"}
+        </a>
+
+        <Card className="fade-up-3" style={{ marginBottom: 24 }}>
+          <div style={{ padding: "14px 16px" }}>
+            <SectionLabel>TIMELINE</SectionLabel>
+            <Timeline timestamps={work.timestamps} />
+          </div>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+// ── CLOSED SUCCESS ANIMATION ──────────────────────────────────────────
 const ClosedSuccess = ({ work, lang, onDone }) => {
   const hi = lang === "hi";
   const confettiColors = [T.saffron, T.green, T.sky, "#f5a623", T.greenLight];
-
   return (
     <div style={{ padding: "40px 24px", textAlign: "center", position: "relative", overflow: "hidden" }}>
-      {/* Confetti particles */}
       {[...Array(12)].map((_, i) => (
-        <div key={i} style={{
-          position: "absolute",
-          left: `${10 + (i * 7.5)}%`,
-          top: `${10 + (i % 3) * 8}%`,
-          width: 8, height: 8,
-          borderRadius: i % 2 === 0 ? "50%" : 2,
-          background: confettiColors[i % confettiColors.length],
-          animation: `confetti ${1 + (i * 0.15)}s ${i * 0.1}s ease-out both`,
-        }} />
+        <div key={i} style={{ position: "absolute", left: `${10 + (i * 7.5)}%`, top: `${10 + (i % 3) * 8}%`, width: 8, height: 8, borderRadius: i % 2 === 0 ? "50%" : 2, background: confettiColors[i % confettiColors.length], animation: `confetti ${1 + (i * 0.15)}s ${i * 0.1}s ease-out both` }} />
       ))}
-
-      <div className="pop-in" style={{
-        width: 90, height: 90, borderRadius: "50%",
-        background: T.greenDim, border: `4px solid ${T.green}`,
-        display: "flex", alignItems: "center", justifyContent: "center",
-        margin: "0 auto 20px", fontSize: 42,
-      }}>🎉</div>
-
-      <h2 style={{ fontFamily: font.display, fontSize: 26, fontWeight: 800, marginBottom: 8 }}>
-        {hi ? "Site Work बंद हो गया!" : "Site Work Closed!"}
-      </h2>
-      <p style={{ fontSize: 14, color: T.muted, lineHeight: 1.65, marginBottom: 8 }}>
-        {hi
-          ? `${work.techName} का trust score update हो गया।`
-          : `${work.techName}'s trust score has been updated.`}
-      </p>
-      <p style={{ fontSize: 12, color: T.muted, marginBottom: 28, fontFamily: font.mono }}>
-        {hi ? "PROOF PHOTO DELETED FROM SERVER ✓" : "PROOF PHOTO DELETED FROM SERVER ✓"}
-      </p>
-
-      {/* Trust update */}
-      <div style={{
-        background: T.greenDim, borderRadius: 14,
-        padding: "16px", marginBottom: 20,
-        border: `1px solid ${T.green}30`,
-        textAlign: "left",
-      }}>
-        <div style={{ fontFamily: font.mono, fontSize: 10, color: T.green, letterSpacing: "0.1em", marginBottom: 10 }}>
-          TRUST UPDATED
-        </div>
-        {[
-          { l: hi ? "Completed Site Work" : "Completed Site Work", v: "+1 → 19" },
-          { l: hi ? "Unique SIs" : "Unique SIs",                  v: "5 (unchanged)" },
-          { l: hi ? "Avg Rating" : "Avg Rating",                  v: "4.6 ★ (updated)" },
-        ].map(s => (
-          <div key={s.l} style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-            <span style={{ fontSize: 13, color: T.ink }}>{s.l}</span>
-            <span style={{ fontFamily: font.mono, fontSize: 12, fontWeight: 700, color: T.green }}>{s.v}</span>
-          </div>
-        ))}
-      </div>
-
-      <button onClick={onDone} style={{
-        width: "100%", padding: "15px",
-        borderRadius: 50, border: "none",
-        background: T.sky, color: T.white,
-        fontFamily: font.display, fontSize: 16, fontWeight: 700, cursor: "pointer",
-        boxShadow: `0 4px 20px ${T.sky}50`,
-      }}>
+      <div className="pop-in" style={{ width: 90, height: 90, borderRadius: "50%", background: T.greenDim, border: `4px solid ${T.green}`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", fontSize: 42 }}>🎉</div>
+      <h2 style={{ fontFamily: font.display, fontSize: 26, fontWeight: 800, marginBottom: 8 }}>{hi ? "Site Work बंद हो गया!" : "Site Work Closed!"}</h2>
+      <p style={{ fontSize: 14, color: T.muted, lineHeight: 1.65, marginBottom: 8 }}>{hi ? `${work.techName} का trust score update हो गया।` : `${work.techName}'s trust score has been updated.`}</p>
+      <p style={{ fontSize: 12, color: T.muted, marginBottom: 28, fontFamily: font.mono }}>PROOF PHOTO DELETED FROM SERVER ✓</p>
+      <button onClick={onDone} style={{ width: "100%", padding: "15px", borderRadius: 50, border: "none", background: T.sky, color: T.white, fontFamily: font.display, fontSize: 16, fontWeight: 700, cursor: "pointer", boxShadow: `0 4px 20px ${T.sky}50` }}>
         {hi ? "My Works पर जाएं" : "Go to My Works"}
       </button>
     </div>
   );
 };
 
-// ─── MAIN APP ─────────────────────────────────────────────────────
-const DEMO_MODES = [
-  { id: "COMPLETED", label: "SI: Review & Close",     sub: "Proof photo + rating + close flow" },
-  { id: "ACCEPTED",  label: "SI: Active Work",         sub: "Accepted, tracking technician" },
-  { id: "CLOSED",    label: "SI: Closed Work",         sub: "Fully closed with rating history" },
-  { id: "TECH_PENDING", label: "Tech: Incoming Work",  sub: "Accept / reject flow" },
-];
-
+// ── MAIN ──────────────────────────────────────────────────────────────
 export default function SiteWorkDetail() {
-  const [lang,     setLang]     = useState("hi");
-  const [mode,     setMode]     = useState("COMPLETED");
-  const [closed,   setClosed]   = useState(false);
+  const { id }       = useParams();
+  const navigate     = useNavigate();
+  const { user }     = useAuth();
+  const [lang, setLang]   = useState(localStorage.getItem('sm_lang') || 'hi');
+  const [work, setWork]   = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [closed, setClosed] = useState(false);
 
-  const work = WORK_STATES[mode];
+  const load = useCallback(async () => {
+    setLoading(true); setError('');
+    try {
+      const r = await api.get(`/site-work/${id}`);
+      setWork(normalize(r.data));
+    } catch (e) {
+      setError(e?.message || 'Failed to load');
+    } finally { setLoading(false); }
+  }, [id]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const perspective = work && user
+    ? (user._id === work.siId ? 'SI' : 'TECH')
+    : null;
+
   const hi = lang === "hi";
+  const st = work ? (STATUS_CFG[closed ? "CLOSED" : work.status] || {}) : {};
 
   const renderBody = () => {
-    if (closed) return <ClosedSuccess work={WORK_STATES.COMPLETED} lang={lang} onDone={() => setClosed(false)} />;
+    if (loading) return (
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "60px 24px", flexDirection: "column", gap: 16 }}>
+        <div style={{ width: 32, height: 32, border: `3px solid ${T.saffron}`, borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+        <div style={{ color: T.muted, fontSize: 14 }}>{hi ? "Loading…" : "Loading…"}</div>
+      </div>
+    );
+    if (error) return (
+      <div style={{ padding: "40px 24px", textAlign: "center" }}>
+        <div style={{ fontSize: 40, marginBottom: 12 }}>⚠️</div>
+        <div style={{ fontFamily: font.display, fontSize: 16, fontWeight: 700, marginBottom: 8 }}>{hi ? "Load नहीं हो सका" : "Could not load"}</div>
+        <div style={{ fontSize: 13, color: T.muted, marginBottom: 20 }}>{error}</div>
+        <button onClick={load} style={{ padding: "12px 28px", borderRadius: 50, border: "none", background: T.saffron, color: T.white, fontFamily: font.display, fontSize: 14, fontWeight: 700, cursor: "pointer" }}>Retry</button>
+      </div>
+    );
+    if (!work) return null;
+    if (closed) return <ClosedSuccess work={work} lang={lang} onDone={() => navigate(user?.roles?.includes('SI') ? '/si' : '/tech')} />;
 
-    switch (mode) {
-      case "COMPLETED":    return <SIReviewClose  work={work} lang={lang} onClose={() => setClosed(true)} />;
-      case "ACCEPTED":     return <SIActiveView   work={work} lang={lang} />;
-      case "CLOSED":       return <ClosedView     work={work} lang={lang} />;
-      case "TECH_PENDING": return <TechPendingView work={work} lang={lang} />;
-      default:             return null;
+    // Cancelled states
+    if (work.status === "CANCELLED_BY_SI" || work.status === "CANCELLED_BY_TECH") return (
+      <div style={{ padding: "40px 24px", textAlign: "center" }}>
+        <div style={{ fontSize: 48, marginBottom: 12 }}>❌</div>
+        <div style={{ fontFamily: font.display, fontSize: 18, fontWeight: 800, marginBottom: 8 }}>{hi ? "Cancelled" : "Cancelled"}</div>
+        <div style={{ fontSize: 13, color: T.muted }}>{work.status === "CANCELLED_BY_SI" ? (hi ? "SI ने cancel किया" : "Cancelled by SI") : (hi ? "Technician ने cancel किया" : "Cancelled by Technician")}</div>
+        {work.timestamps.cancelledAt && <div style={{ fontSize: 12, color: T.muted, marginTop: 4 }}>{work.timestamps.cancelledAt}</div>}
+      </div>
+    );
+
+    if (work.status === "CLOSED") return <ClosedView work={work} lang={lang} />;
+
+    if (perspective === "SI") {
+      if (work.status === "COMPLETED") return <SIReviewClose work={work} lang={lang} onClosed={() => setClosed(true)} />;
+      return <SIActiveView work={work} lang={lang} onAction={load} />;
     }
-  };
 
-  const st = STATUS_CFG[closed ? "CLOSED" : work.status];
+    if (perspective === "TECH") {
+      if (work.status === "PENDING_ACCEPTANCE") return <TechPendingView work={work} lang={lang} onAction={load} />;
+      return <TechActiveView work={work} lang={lang} onAction={load} />;
+    }
+
+    return null;
+  };
 
   return (
     <>
       <Fonts />
       <div style={{ minHeight: "100vh", background: T.paper, display: "flex", flexDirection: "column", alignItems: "center" }}>
         {/* Top bar */}
-        <div style={{
-          width: "100%", maxWidth: 420,
-          background: T.paper, borderBottom: `1px solid ${T.border}`,
-          position: "sticky", top: 0, zIndex: 40,
-        }}>
-          {/* Nav row */}
+        <div style={{ width: "100%", maxWidth: 420, background: T.paper, borderBottom: `1px solid ${T.border}`, position: "sticky", top: 0, zIndex: 40 }}>
           <div style={{ padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <button style={{ display:"flex",alignItems:"center",gap:6,background:"none",border:"none",cursor:"pointer",fontFamily:font.body,fontSize:14,color:T.muted }}>
-              ← {hi?"वापस":"Back"}
+            <button onClick={() => navigate(-1)} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", cursor: "pointer", fontFamily: font.body, fontSize: 14, color: T.muted }}>
+              ← {hi ? "वापस" : "Back"}
             </button>
-            <div style={{ fontFamily: font.mono, fontSize: 11, fontWeight: 700, color: T.muted, letterSpacing: "0.08em" }}>
-              SITE WORK DETAIL
-            </div>
-            <div style={{ display:"flex",gap:2,background:T.white,border:`1px solid ${T.border}`,borderRadius:20,padding:3 }}>
+            <div style={{ fontFamily: font.mono, fontSize: 11, fontWeight: 700, color: T.muted, letterSpacing: "0.08em" }}>SITE WORK DETAIL</div>
+            <div style={{ display: "flex", gap: 2, background: T.white, border: `1px solid ${T.border}`, borderRadius: 20, padding: 3 }}>
               {["hi","en"].map(l => (
-                <button key={l} onClick={() => setLang(l)} style={{
-                  padding:"3px 10px",borderRadius:14,border:"none",
-                  background:lang===l?T.saffron:"transparent",
-                  color:lang===l?T.white:T.muted,
-                  fontFamily:font.mono,fontSize:11,fontWeight:700,cursor:"pointer",transition:"all 0.2s",
-                }}>{l==="hi"?"हि":"EN"}</button>
+                <button key={l} onClick={() => setLang(l)} style={{ padding: "3px 10px", borderRadius: 14, border: "none", background: lang === l ? T.saffron : "transparent", color: lang === l ? T.white : T.muted, fontFamily: font.mono, fontSize: 11, fontWeight: 700, cursor: "pointer", transition: "all 0.2s" }}>
+                  {l === "hi" ? "हि" : "EN"}
+                </button>
               ))}
             </div>
           </div>
 
-          {/* Work header */}
-          {!closed && (
+          {!closed && work && !loading && !error && (
             <div style={{ padding: "0 16px 14px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                 <div>
-                  <div style={{ fontFamily: font.display, fontSize: 18, fontWeight: 800, lineHeight: 1.25, marginBottom: 4 }}>
-                    {work.workType}
-                  </div>
-                  <div style={{ fontSize: 12, color: T.muted }}>
-                    {work.siteClientName} · {work.siteAddress.split(",")[0]}
-                  </div>
+                  <div style={{ fontFamily: font.display, fontSize: 18, fontWeight: 800, lineHeight: 1.25, marginBottom: 4 }}>{work.workType}</div>
+                  <div style={{ fontSize: 12, color: T.muted }}>{work.siteClientName} · {work.siteAddress?.split(",")[0]}</div>
                 </div>
                 <Tag label={hi ? st.hi : st.en} color={st.color} />
               </div>
               <div style={{ fontFamily: font.mono, fontSize: 11, color: T.muted, marginTop: 6 }}>
-                #{work.id} · {work.perspective === "SI" ? `SI: ${work.siName}` : `Tech: ${work.techName}`}
+                #{work.id?.slice(-8)} · {perspective}
               </div>
             </div>
           )}
         </div>
 
-        {/* Demo mode switcher */}
-        <div style={{
-          width: "100%", maxWidth: 420,
-          background: T.ink, padding: "10px 12px",
-          display: "flex", gap: 6, overflowX: "auto",
-        }}>
-          {DEMO_MODES.map(d => (
-            <button key={d.id} onClick={() => { setMode(d.id); setClosed(false); }} style={{
-              flexShrink: 0, padding: "7px 12px", borderRadius: 10,
-              border: `1px solid ${mode === d.id ? T.saffronLight : "rgba(255,255,255,0.15)"}`,
-              background: mode === d.id ? T.saffron : "rgba(255,255,255,0.07)",
-              cursor: "pointer", textAlign: "left",
-            }}>
-              <div style={{ fontFamily: font.mono, fontSize: 10, fontWeight: 700, color: mode === d.id ? T.white : "rgba(255,255,255,0.7)", whiteSpace: "nowrap" }}>
-                {d.label}
-              </div>
-              <div style={{ fontFamily: font.mono, fontSize: 9, color: mode === d.id ? "rgba(255,255,255,0.8)" : "rgba(255,255,255,0.4)", marginTop: 2, whiteSpace: "nowrap" }}>
-                {d.sub}
-              </div>
-            </button>
-          ))}
-        </div>
-
-        {/* Page body */}
         <div style={{ width: "100%", maxWidth: 420, flex: 1 }}>
           {renderBody()}
         </div>

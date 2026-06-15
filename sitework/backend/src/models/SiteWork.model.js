@@ -6,12 +6,15 @@ const siteWorkSchema = new Schema({
   technicianUserId:  { type: Schema.Types.ObjectId, ref: 'User', required: true },
   clientName:        String,
   clientMobile:      String,
+  clientHouseNo:     String,
   siteAddress:       String,
+  mapShortUrl:       String,
   siteLocation: {
     type:        { type: String, enum: ['Point'] },
     coordinates: [Number],
   },
   workType:         String,
+  rejectionReason:  String,
   requiredSkills:   [String],
   description:      String,
   preferredVisitTime: Date,
@@ -55,6 +58,8 @@ const siteWorkSchema = new Schema({
     comment:       String,
     ratedAt:       Date,
   },
+  technicianRemark: String,   // optional note by tech at completion (extra work, observations)
+
   privateIssueByTechnician: {
     hasIssue:    { type: Boolean, default: false },
     reason:      String,

@@ -18,12 +18,10 @@ const fileFilter = (_, file, cb) => {
   allowed.includes(file.mimetype) ? cb(null, true) : cb(new Error('Only images allowed'));
 };
 
-const maxSizeKb = parseInt(process.env.PROOF_PHOTO_MAX_SIZE_KB || 400);
-
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: maxSizeKb * 1024 },
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB — client compresses before upload; this is a safety net
 });
 
 module.exports = { upload };

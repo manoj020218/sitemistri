@@ -73,7 +73,7 @@ router.get('/site-works', protect, async (req, res) => {
     const SiteWork = require('../models/SiteWork.model');
     const works = await SiteWork.find({ siUserId: req.user._id })
       .sort({ createdAt: -1 }).limit(100)
-      .populate('technicianUserId', 'name')
+      .populate('technicianUserId', 'name mobile')
       .lean();
     return ok(res, works);
   } catch (e) { return err(res, e.message, 500); }

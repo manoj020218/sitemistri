@@ -1,5 +1,7 @@
 const TechnicianProfile = require('../models/TechnicianProfile.model');
 
+const AVAIL_ACTIVE = ['AVAILABLE_NOW','AVAILABLE_TODAY','AVAILABLE_TOMORROW'];
+
 const rankTechnicians = (techs, requiredSkills = []) =>
   techs.map(tech => {
     let score = 0;
@@ -32,7 +34,8 @@ const rankTechnicians = (techs, requiredSkills = []) =>
   }).sort((a, b) => b.score - a.score);
 
 const searchNearby = async ({ lat, lng, radiusKm = 10, requiredSkills = [], workType }) => {
-  const radiusMeters = radiusKm * 1000;
+  const radiusMeters  = radiusKm * 1000;
+  const cutoff48h     = new Date(Date.now() - 48 * 60 * 60 * 1000);
 
   const results = await TechnicianProfile.aggregate([
     {
@@ -42,36 +45,87 @@ const searchNearby = async ({ lat, lng, radiusKm = 10, requiredSkills = [], work
         maxDistance:   radiusMeters,
         spherical:     true,
         query: {
-          availability: { $in: ['AVAILABLE_NOW','AVAILABLE_TODAY','AVAILABLE_TOMORROW'] },
+          availability: { $in: [...AVAIL_ACTIVE, 'OFFLINE'] },
+          'currentLocation.updatedAt': { $exists: true },
           ...(requiredSkills.length ? { skills: { $in: requiredSkills } } : {}),
         },
       },
     },
-    { $limit: 30 },
+    { $limit: 60 },
     {
       $lookup: {
-        from:         'users',
-        localField:   'userId',
-        foreignField: '_id',
-        as:           'user',
+        from: 'users', localField: 'userId', foreignField: '_id', as: 'user',
       },
     },
     { $unwind: '$user' },
     { $match: { 'user.isBlocked': false } },
     {
       $project: {
-        userId: 1, city: 1, skills: 1, availability: 1,
+        userId: 1, city: 1, skills: 1, workTypes: 1, availability: 1,
         currentLocation: 1, trustStats: 1, profileSlug: 1,
         vehicle: 1, experienceLevel: 1,
-        'user.name': 1,
-        _distance: { $divide: ['$_distance', 1000] },  // km
+        'user.name': 1, 'user.mobile': 1,
+        _distance: { $divide: ['$_distance', 1000] },
       },
     },
   ]);
 
-  // Wrap plain objects to allow toObject() in rankTechnicians
-  const wrapped = results.map(r => ({ ...r, toObject: () => r }));
-  return rankTechnicians(wrapped, requiredSkills);
+  const available = results.filter(r => AVAIL_ACTIVE.includes(r.availability));
+  const offline   = results.filter(r =>
+    r.availability === 'OFFLINE' &&
+    r.currentLocation?.updatedAt &&
+    new Date(r.currentLocation.updatedAt) >= cutoff48h
+  );
+
+  const rankedAvailable = rankTechnicians(available.map(r => ({ ...r, toObject: () => r })), requiredSkills);
+  const rankedOffline   = offline
+    .map(r => ({ ...r, distanceKm: r._distance || 0, score: -1, isOffline: true }))
+    .sort((a, b) => a.distanceKm - b.distanceKm);
+
+  return [...rankedAvailable, ...rankedOffline];
 };
 
-module.exports = { searchNearby };
+const searchByPincode = async ({ pincode, requiredSkills = [] }) => {
+  const cutoff48h = new Date(Date.now() - 48 * 60 * 60 * 1000);
+
+  const results = await TechnicianProfile.aggregate([
+    {
+      $match: {
+        pincode,
+        availability: { $in: [...AVAIL_ACTIVE, 'OFFLINE'] },
+        ...(requiredSkills.length ? { skills: { $in: requiredSkills } } : {}),
+      },
+    },
+    { $limit: 60 },
+    {
+      $lookup: {
+        from: 'users', localField: 'userId', foreignField: '_id', as: 'user',
+      },
+    },
+    { $unwind: '$user' },
+    { $match: { 'user.isBlocked': false } },
+    {
+      $project: {
+        userId: 1, city: 1, skills: 1, workTypes: 1, availability: 1,
+        currentLocation: 1, trustStats: 1, profileSlug: 1,
+        vehicle: 1, experienceLevel: 1, pincode: 1,
+        'user.name': 1, 'user.mobile': 1,
+      },
+    },
+  ]);
+
+  const available = results.filter(r => AVAIL_ACTIVE.includes(r.availability));
+  const offline   = results.filter(r =>
+    r.availability === 'OFFLINE' && (
+      !r.currentLocation?.updatedAt ||
+      new Date(r.currentLocation.updatedAt) >= cutoff48h
+    )
+  );
+
+  const rankedAvailable = rankTechnicians(available.map(r => ({ ...r, _distance: 0, toObject: () => r })), requiredSkills);
+  const rankedOffline   = offline.map(r => ({ ...r, distanceKm: 0, score: -1, isOffline: true }));
+
+  return [...rankedAvailable, ...rankedOffline];
+};
+
+module.exports = { searchNearby, searchByPincode };

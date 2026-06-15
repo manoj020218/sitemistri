@@ -6,7 +6,7 @@ const slugify               = (name, city) =>
 
 exports.createOrUpdateProfile = async (req, res) => {
   try {
-    const { city, skills=[], experienceLevel, tools=[], vehicle, availability, workTypes=[], workingAreas=[], permanentAddress, approxAge } = req.body;
+    const { city, skills=[], experienceLevel, tools=[], vehicle, availability, workTypes=[], workingAreas=[], permanentAddress, approxAge, pincode } = req.body;
     const user = req.user;
 
     const bio = generateBio(user.name, { city, skills, experienceLevel, tools });
@@ -20,6 +20,7 @@ exports.createOrUpdateProfile = async (req, res) => {
         userId: user._id, city, skills, experienceLevel, tools, vehicle,
         availability: availability || 'OFFLINE',
         workTypes, workingAreas, permanentAddress, approxAge,
+        ...(pincode ? { pincode: String(pincode).trim() } : {}),
         generatedBioHi: bio.hi, generatedBioEn: bio.en,
         profileSlug: slug, profileStrength: strength,
       },
@@ -50,7 +51,7 @@ exports.updateAvailability = async (req, res) => {
 exports.updateLocation = async (req, res) => {
   try {
     const { lat, lng, accuracy } = req.body;
-    if (!lat || !lng) return err(res, 'lat and lng required');
+    if (lat == null || lng == null) return err(res, 'lat and lng required');
     await TechnicianProfile.findOneAndUpdate(
       { userId: req.user._id },
       { currentLocation: { type: 'Point', coordinates: [lng, lat], accuracy, updatedAt: new Date() } }
@@ -73,7 +74,7 @@ exports.getMySiteWorks = async (req, res) => {
     const SiteWork = require('../models/SiteWork.model');
     const works = await SiteWork.find({ technicianUserId: req.user._id })
       .sort({ createdAt: -1 }).limit(50)
-      .populate('siUserId','name')
+      .populate('siUserId','name mobile')
       .lean();
     return ok(res, works);
   } catch (e) { return err(res, e.message, 500); }

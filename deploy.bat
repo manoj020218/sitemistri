@@ -1,12 +1,12 @@
 @echo off
 :: ─────────────────────────────────────────────────────────────────
 :: SiteMitra — Deploy Script
-:: VPS: 154.61.69.200  |  User: root  |  Pass: YOUR_VPS_PASSWORD_HERE
+:: VPS: 154.61.69.200  |  User: root  |  Pass: Vps@SmGym#2026
 :: PuTTY tools: plink.exe + pscp.exe (C:\Program Files\PuTTY\)
 :: ─────────────────────────────────────────────────────────────────
 
 SET VPS=root@154.61.69.200
-SET PASS=YOUR_VPS_PASSWORD_HERE
+SET PASS=Vps@SmGym#2026
 SET PLINK="C:\Program Files\PuTTY\plink.exe"
 SET PSCP="C:\Program Files\PuTTY\pscp.exe"
 SET WEB_ROOT=/root/projects/SiteMitra/web
