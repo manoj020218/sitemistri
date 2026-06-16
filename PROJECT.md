@@ -1,7 +1,7 @@
 # SiteMitra — Project Master Document
 
-> **Last Updated:** 2026-06-11 (Session 9)
-> **Status:** Fully deployed & running — Backend ✅ · React frontend ✅ · Marketing page ✅ · GPS banner ✅ · Google Maps paste ✅ · Screen persistence ✅ · Real-time progress ✅ · Mic voice input ✅ · Proof photo (canvas WebP compress) ✅ · Completion remark (text+mic) ✅ · SI profile modal (call/WhatsApp) ✅ · History proof photo display ✅ · SI Review Screen ✅ · PENDING_ACCEPTANCE WhatsApp/SMS remind ✅ · No full-page spinner ✅ · Pull-to-refresh disabled ✅
+> **Last Updated:** 2026-06-16 (Session 10)
+> **Status:** Fully deployed & running — Backend ✅ · React frontend ✅ · Marketing page ✅ · GPS banner ✅ · Google Maps paste ✅ · Screen persistence ✅ · Real-time progress ✅ · Mic voice input ✅ · Proof photo (canvas WebP compress) ✅ · Completion remark (text+mic) ✅ · SI profile modal (call/WhatsApp) ✅ · History proof photo display ✅ · SI Review Screen ✅ · PENDING_ACCEPTANCE WhatsApp/SMS remind ✅ · No full-page spinner ✅ · Pull-to-refresh disabled ✅ · PWA manifest ✅ · Web Share Target (Google Maps → SI search) ✅ · Refer-to-Friend card ✅ · PWA start_url bug fixed ✅ · "Open App" banner on marketing page ✅
 > **Live URL:** https://sitemitra.iotsoft.in
 > **VPS:** 154.61.69.200 (Ubuntu 24 LTS)
 > **Developer:** Jenix (contact: support@iotsoft.com)
@@ -226,6 +226,7 @@ deploy.bat ssh        — open PuTTY SSH session
 │   ├── icon-maskable.png
 │   ├── icon.svg
 │   ├── icons/
+│   ├── manifest.json         ← PWA manifest (Session 10: created with share_target + start_url:/onboarding)
 │   ├── join/
 │   │   └── index.html        ← PWA install page
 │   └── landing/              ← Old location (no longer used for /)
@@ -286,6 +287,13 @@ server {
 - Request for `/onboarding`, `/si`, `/tech` → no file found → falls back to `index.html` → React SPA handles routing
 - Request for `/join/` → real directory with its own `index.html` → served directly
 - Service worker: `navigateFallbackDenylist: [/^\//]` prevents SW from intercepting `/` so marketing page is always fresh from server
+
+**PWA Manifest (`/manifest.json`) — Session 10:**
+- `start_url: "/onboarding"` — PWA opens React app (not marketing page) on launch
+- `share_target: { action: "/si", method: "GET", params: {url, text, title} }` — SiteMitra appears in Android share sheet; Google Maps → share → SiteMitra auto-fills SI location search
+- `protocol_handlers: [{ protocol: "geo", url: "/si?geo=%s" }]` — catches `geo:lat,lng` URI shares
+- Linked in React app's `index.html` via `<link rel="manifest" href="/manifest.json">`
+- Old `manifest.webmanifest` (from Vite PWA plugin, now unused) still present on VPS — harmless
 
 ### PM2
 - App name: `sitemitra-api` (id: 20)
@@ -568,6 +576,7 @@ VitePWA({
 - **`searchContext` state** — captures `{siteAddr, siteCoords, mapShortUrl}` when assign is triggered from search results; passed to AssignScreen for pre-fill (Session 7)
 - **Screen persistence** — last active screen saved to `localStorage('sm_si_screen')` and restored on refresh; `"work-detail"` intentionally excluded (transient, no restore on refresh) (Session 7/9)
 - **SearchScreen always mounted (CSS display:none)** — preserves search state (results, step, address) when navigating to profile/assign; React maintains state of non-unmounted components (Session 7)
+- **Web Share Target handling** (Session 10) — on mount reads `?url=` / `?text=` / `?geo=` from URL (set by Android share sheet); if present, forces screen to "search" and passes params to SearchScreen; clears URL params via `replaceState` so refresh doesn't re-trigger; `_shareParams` IIFE reads `window.location.search`
 - Valid screens: `home`, `search`, `tech-profile`, `assign`, `my-works`, `work-detail`, `pool`, `profile`
 
 #### HomeScreen
@@ -576,10 +585,12 @@ VitePWA({
 - Pending review alert banner (COMPLETED status)
 - Profile setup prompt if no `businessName`
 - Profile photo from `siProfile.customPhotoUrl` or `user.photoUrl`
+- **Refer-to-Friend card** (Session 10) — `🤝 दोस्त को Refer करें` green card at bottom; `navigator.share()` opens Android share sheet with pre-written Hindi/English message + `/onboarding` link; clipboard fallback with `✓ Copied!` state
 
 #### SearchScreen (Technician Discovery)
 - "Use Current Location" → `navigator.geolocation` + AbortController (5s) on Nominatim → fills address; fixed infinite spinner (Session 7)
 - **Google Maps short URL paste** — SI can paste `maps.app.goo.gl/...` link; auto-resolves on paste via `POST /api/discovery/resolve-map-link`; shows decoded address below input (Session 7)
+- **Web Share Target auto-fill** (Session 10) — accepts `initialShareUrl` + `initialGeoParam` props; on mount, if a Maps URL was shared via Android share sheet (`?url=`), auto-calls `handleResolveLink()`; if `geo:lat,lng` URI (`?geo=`), parses coords directly + reverse geocodes; `autoFilled` ref prevents double-trigger
 - "Search" → forward geocode via Nominatim if no GPS coords → `POST /api/discovery/nearby`
 - `normalizeTech()` helper normalizes API results (name, skills labels, vehicle emoji, exp, location age, distanceKm, **real mobile**)
 - Results displayed in `ResultsScreen` with real data
@@ -656,15 +667,16 @@ File: `src/pages/si/SIWorkReviewScreen.jsx`
 ## 8. Static Web Pages — Status
 
 ### Marketing Landing Page ✅ LIVE at `sitemitra.iotsoft.in/`
-- **Local:** `sitemitra-web/index.html`
+- **Local:** `sitework/frontend/android-app/public/index-landing.html` (copied to `dist/` on every build)
 - **VPS:** `/root/projects/SiteMitra/web/index-landing.html`
 - **Hindi as default language** (changed Session 4 — was English)
-- **Language switcher:** EN ↔ हिंदी (JS-based, localStorage persists)
+- **Language switcher:** EN ↔ हिंदी (JS-based; also updates "Open App" banner text)
 - **CTAs:**
-  - 🚀 "Try Now — Free" → `/onboarding`
+  - 🚀 "App लें — मुफ्त" → `/onboarding`
   - 📲 "Add to Phone" blinking button — `beforeinstallprompt` on Android/Chrome; iOS Safari instructions fallback
+- **"Open App" banner** (Session 10) — green sticky bar at top (`#open-app-bar`); shown always (browser + standalone); text: "पहले से SiteMitra है? App खोलें →"; links to `/onboarding`; bilingual (updates on lang switch); fixes the issue where installed PWA users had no way to enter the app from the marketing page
 - **Content:** Hero, Stats, Problem, Features, For Technicians, For SI, Trust & Safety, About, Terms & Conditions (18 clauses), Privacy Policy (11 sections), Footer
-- **PWA:** manifest linked, service worker registered
+- **PWA manifest:** `<link rel="manifest" href="/manifest.json">` in React app's `index.html` (Session 10)
 
 ### PWA Install Page ✅ LIVE at `/join`
 - **Local:** `sitemitra-web/join/index.html`
@@ -816,6 +828,11 @@ VITE_VAPID_KEY=
 | Tech's PWA closed → SI assigns work → stays at PENDING_ACCEPTANCE indefinitely with no way to notify | Added WhatsApp + SMS remind buttons on PENDING_ACCEPTANCE cards in MyWorksScreen AND SIWorkReviewScreen; message pre-filled with work type, address, charge, and `/tech` link; iOS/Android SMS URL difference handled | `MyWorksScreen.jsx`, `SIWorkReviewScreen.jsx` |
 | Full-page white spinner on every hard refresh / page load — `initialLoading` spinner covered entire screen; SIDashboard `{loading ? <Spinner/> : ...}` blanked entire content area | Removed both full-page spinners; replaced with 40×40 fixed corner badge (bottom-right, above bottom nav, z-index 50); screens render immediately with empty/null state while data loads | `TechDashboard.jsx`, `SIDashboard.jsx` |
 | Pull-to-refresh on Chrome Android (and force-refresh swipe) triggers full page reload → spinner covers screen | Added `overscroll-behavior-y: none` to `html, body` in SharedUI.jsx Fonts + SIDashboard inline styles; this CSS property disables the browser's native pull-to-refresh gesture in PWA mode | `SharedUI.jsx`, `SIDashboard.jsx` |
+| **Session 10** | | |
+| Installed PWA opens at `start_url: "/"` → Nginx serves `index-landing.html` (marketing page) instead of React app — user stuck with no "Enter App" option | (1) Created `public/manifest.json` with `start_url: "/onboarding"` — PWA now opens React SPA which auto-redirects logged-in users to their dashboard; (2) Added `<link rel="manifest" href="/manifest.json">` to `index.html` | `public/manifest.json`, `index.html` |
+| Users who land on marketing page (browser or standalone) have no way to navigate into the app | Added green "Open App" sticky banner (`#open-app-bar`) at top of `index-landing.html`; always visible; links to `/onboarding`; bilingual; shows correct text in both Hindi and English | `public/index-landing.html` |
+| Google Maps location shared via WhatsApp — user opens in Google Maps, shares to SiteMitra, but app doesn't catch it | Added Web Share Target: `share_target` in `manifest.json` with `action: "/si"`; `SIDashboard` reads `?url=` / `?geo=` params on mount, forces "search" screen, clears params via `replaceState`; `SearchScreen` accepts `initialShareUrl` + `initialGeoParam` props and auto-resolves on mount via existing `handleResolveLink()` or direct coord parse | `manifest.json`, `SIDashboard.jsx`, `SISearchScreen.jsx` |
+| No viral growth mechanism inside the app | Added `🤝 दोस्त को Refer करें` card at bottom of both SI `SIHomeScreen` and Tech `HomeScreen`; uses `navigator.share()` with pre-written Hindi/English referral message + `/onboarding` link; clipboard fallback with `✓ Copied!` | `SIHomeScreen.jsx`, `tech/HomeScreen.jsx` |
 
 ---
 
@@ -854,7 +871,8 @@ VITE_VAPID_KEY=
 - [x] "Try Now — Free" CTA → `/onboarding` (Session 4)
 - [x] "Add to Phone" blinking PWA install button (Session 4)
 - [x] PWA install page (`/join`)
-- [x] PWA manifest, service worker, icons
+- [x] PWA manifest (`public/manifest.json` — Session 10: share_target, start_url fix, protocol_handlers)
+- [x] Service worker, icons
 - [x] All static files deployed to VPS
 
 ### React Frontend ✅
@@ -917,6 +935,11 @@ VITE_VAPID_KEY=
 - [x] **MyWorksScreen Pending filter** — new "Pending" tab with badge count; PENDING_ACCEPTANCE cards have blue left border (Session 9)
 - [x] **No full-page spinner** — removed `if (initialLoading) return <spinner>` from TechDashboard + SIDashboard; replaced with small 40×40 corner badge (fixed bottom-right, z-index 50); screens render immediately (Session 9)
 - [x] **Pull-to-refresh disabled** — `overscroll-behavior-y: none` on `html, body` in SharedUI.jsx + SIDashboard inline styles; prevents Chrome Android PTR gesture in PWA (Session 9)
+- [x] **PWA manifest created** — `public/manifest.json` with `start_url: "/onboarding"`, `share_target`, `protocol_handlers` for `geo:` URIs; linked in `index.html` (Session 10)
+- [x] **PWA start_url bug fixed** — `start_url` changed from `/` to `/onboarding` so installed PWA opens React app, not marketing page (Session 10)
+- [x] **"Open App" banner on marketing page** — green sticky bar always visible at top of `index-landing.html`; "पहले से SiteMitra है? App खोलें →" links to `/onboarding`; bilingual (Session 10)
+- [x] **Web Share Target (Google Maps → SI search)** — registered as Android share target; shared Maps URL lands at `/si?url=...`; `SIDashboard` detects params and auto-navigates to search screen; `SearchScreen` auto-resolves the Maps link and pre-fills location (Session 10)
+- [x] **Refer-to-Friend card** — `🤝 दोस्त को Refer करें` at bottom of SI HomeScreen and Tech HomeScreen; `navigator.share()` with referral message; clipboard fallback (Session 10)
 - [ ] Push notifications (`useFCM` hook + Firebase config in `.env`)
 - [ ] Public profile pages (`/tech/:slug`, `/si/:slug`) — use public.routes.js
 

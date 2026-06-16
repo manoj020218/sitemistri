@@ -1,0 +1,34 @@
+{
+  "name": "SiteMitra – Field Work Partner",
+  "short_name": "SiteMitra",
+  "description": "India's free platform for CCTV field technicians and System Integrators.",
+  "start_url": "/onboarding",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5f0e8",
+  "theme_color": "#e8630a",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "share_target": {
+    "action": "/si",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "protocol_handlers": [
+    { "protocol": "geo", "url": "/si?geo=%s" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Find Technicians",
+      "short_name": "Search",
+      "url": "/si?action=search",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
