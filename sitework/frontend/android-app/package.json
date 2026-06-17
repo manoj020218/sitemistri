@@ -12,11 +12,11 @@
     "android:apk": "npm run build && npx cap sync android && cd android && gradlew.bat assembleDebug"
   },
   "dependencies": {
-    "@capgo/capacitor-social-login": "^8.1.2",
-    "@capacitor/android": "^8.0.0",
-    "@capacitor/app": "^8.0.0",
-    "@capacitor/browser": "^8.0.0",
-    "@capacitor/core": "^8.0.0",
+    "@capgo/capacitor-social-login": "^7.20.0",
+    "@capacitor/android": "^7.6.6",
+    "@capacitor/app": "^7.0.1",
+    "@capacitor/browser": "^7.0.1",
+    "@capacitor/core": "^7.6.6",
     "react":               "^18.3.1",
     "react-dom":           "^18.3.1",
     "react-router-dom":    "^6.23.1",
@@ -26,7 +26,7 @@
     "react-leaflet":       "^4.2.1"
   },
   "devDependencies": {
-    "@capacitor/cli":       "^8.0.0",
+    "@capacitor/cli":       "^7.6.6",
     "@vitejs/plugin-react": "^4.3.1",
     "vite":                 "^5.3.1"
   },

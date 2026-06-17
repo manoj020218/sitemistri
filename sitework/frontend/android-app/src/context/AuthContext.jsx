@@ -12,7 +12,7 @@ export const AuthProvider = ({ children }) => {
     const token = localStorage.getItem('swn_token');
     if (token) {
       api.get('/auth/me')
-        .then(setUser)
+        .then(r => setUser(r.data))
         .catch(() => localStorage.removeItem('swn_token'))
         .finally(() => setLoading(false));
     } else {
@@ -23,15 +23,15 @@ export const AuthProvider = ({ children }) => {
   const loginWithGoogle = async () => {
     const credential = await getGoogleAccessToken();
     const r = await api.post('/auth/google', { credential });
-    localStorage.setItem('swn_token', r.token);
-    setUser(r.user);
-    return r; // { token, user, isNew }
+    localStorage.setItem('swn_token', r.data.token);
+    setUser(r.data.user);
+    return r.data; // { token, user, isNew }
   };
 
   const refreshUser = async () => {
     const r = await api.get('/auth/me');
-    setUser(r);
-    return r;
+    setUser(r.data);
+    return r.data;
   };
 
   const logout = () => {

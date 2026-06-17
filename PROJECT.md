@@ -1,6 +1,6 @@
 # SiteMitra — Project Master Document
 
-> **Last Updated:** 2026-06-16 (Session 10)
+> **Last Updated:** 2026-06-17 (Session 11)
 > **Status:** Fully deployed & running — Backend ✅ · React frontend ✅ · Marketing page ✅ · GPS banner ✅ · Google Maps paste ✅ · Screen persistence ✅ · Real-time progress ✅ · Mic voice input ✅ · Proof photo (canvas WebP compress) ✅ · Completion remark (text+mic) ✅ · SI profile modal (call/WhatsApp) ✅ · History proof photo display ✅ · SI Review Screen ✅ · PENDING_ACCEPTANCE WhatsApp/SMS remind ✅ · No full-page spinner ✅ · Pull-to-refresh disabled ✅ · PWA manifest ✅ · Web Share Target (Google Maps → SI search) ✅ · Refer-to-Friend card ✅ · PWA start_url bug fixed ✅ · "Open App" banner on marketing page ✅
 > **Live URL:** https://sitemitra.iotsoft.in
 > **VPS:** 154.61.69.200 (Ubuntu 24 LTS)
@@ -833,6 +833,9 @@ VITE_VAPID_KEY=
 | Users who land on marketing page (browser or standalone) have no way to navigate into the app | Added green "Open App" sticky banner (`#open-app-bar`) at top of `index-landing.html`; always visible; links to `/onboarding`; bilingual; shows correct text in both Hindi and English | `public/index-landing.html` |
 | Google Maps location shared via WhatsApp — user opens in Google Maps, shares to SiteMitra, but app doesn't catch it | Added Web Share Target: `share_target` in `manifest.json` with `action: "/si"`; `SIDashboard` reads `?url=` / `?geo=` params on mount, forces "search" screen, clears params via `replaceState`; `SearchScreen` accepts `initialShareUrl` + `initialGeoParam` props and auto-resolves on mount via existing `handleResolveLink()` or direct coord parse | `manifest.json`, `SIDashboard.jsx`, `SISearchScreen.jsx` |
 | No viral growth mechanism inside the app | Added `🤝 दोस्त को Refer करें` card at bottom of both SI `SIHomeScreen` and Tech `HomeScreen`; uses `navigator.share()` with pre-written Hindi/English referral message + `/onboarding` link; clipboard fallback with `✓ Copied!` | `SIHomeScreen.jsx`, `tech/HomeScreen.jsx` |
+| **Session 11** | | |
+| **[CRITICAL]** Google login silently fails — `loginWithGoogle()` stored `swn_token = "undefined"` (literal string) and set `user = undefined`; `handleLoginNext` got `u = undefined` → forced to T&C step with invalid token | `api.js` interceptor returns `response.data` (the `{success,data}` envelope), not the payload. Fixed `AuthContext.jsx`: `loginWithGoogle` now uses `r.data.token` / `r.data.user` / `return r.data`; `refreshUser` uses `setUser(r.data)` / `return r.data`; mount effect uses `.then(r => setUser(r.data))` | `AuthContext.jsx` |
+| **[CRITICAL]** "Agree and Proceed" T&C button appears to do nothing — `refreshUser()` set `user` to the `{success,data}` envelope, then `useEffect([user])` in `OnboardingApp` saw `user.termsAccepted === undefined` and redirected back to step 1 (overriding `setStep(2)`) | Same root cause as Google login bug above — fixed by `refreshUser()` now correctly setting `user = r.data` (the actual user object with `termsAccepted: true`) | `AuthContext.jsx` |
 
 ---
 
